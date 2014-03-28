@@ -18,6 +18,12 @@ var etcdMachine = flag.String(
 	"etcd machine to instrument",
 )
 
+var index = flag.Uint(
+	"index",
+	0,
+	"index of the etcd job",
+)
+
 var port = flag.Int(
 	"port",
 	5678,
@@ -85,6 +91,7 @@ func main() {
 		Port:        *port,
 		Username:    *username,
 		Password:    *password,
+		Index:       *index,
 	}
 
 	server := metrics_server.New(registrar, steno.NewLogger("etcd-metrics-server"), config)

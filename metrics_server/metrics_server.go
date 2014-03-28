@@ -20,10 +20,13 @@ type MetricsServer struct {
 }
 
 type Config struct {
+	Index uint
+
 	EtcdMachine string
-	Port        int
-	Username    string
-	Password    string
+
+	Port     int
+	Username string
+	Password string
 }
 
 func New(registrar collector_registrar.CollectorRegistrar, logger *gosteno.Logger, config Config) *MetricsServer {
@@ -43,7 +46,7 @@ func (server *MetricsServer) Start() error {
 	component, err := cfcomponent.NewComponent(
 		server.logger,
 		"etcd",
-		0,
+		server.config.Index,
 		health_check.New("tcp", url.Host, server.logger),
 		uint32(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
