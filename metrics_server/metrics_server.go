@@ -1,6 +1,8 @@
 package metrics_server
 
 import (
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
+	"net/url"
 	"strconv"
 
 	"github.com/cloudfoundry/gosteno"
@@ -32,16 +34,17 @@ func New(registrar collector_registrar.CollectorRegistrar, logger *gosteno.Logge
 	}
 }
 
-func (server *MetricsServer) Ok() bool {
-	return true
-}
-
 func (server *MetricsServer) Start() error {
+	url, err := url.Parse(server.config.EtcdMachine)
+	if err != nil {
+		return err
+	}
+
 	component, err := cfcomponent.NewComponent(
 		server.logger,
 		"etcd",
 		0,
-		server,
+		health_check.New("tcp", url.Host, server.logger),
 		uint32(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
 		[]instrumentation.Instrumentable{
