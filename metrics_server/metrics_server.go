@@ -22,7 +22,7 @@ type MetricsServer struct {
 type Config struct {
 	Index uint
 
-	EtcdMachine string
+	EtcdURL *url.URL
 
 	Port     int
 	Username string
@@ -38,22 +38,17 @@ func New(registrar collector_registrar.CollectorRegistrar, logger *gosteno.Logge
 }
 
 func (server *MetricsServer) Start() error {
-	url, err := url.Parse(server.config.EtcdMachine)
-	if err != nil {
-		return err
-	}
-
 	component, err := cfcomponent.NewComponent(
 		server.logger,
 		"etcd",
 		server.config.Index,
-		health_check.New("tcp", url.Host, server.logger),
+		health_check.New("tcp", server.config.EtcdURL.Host, server.logger),
 		uint32(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
 		[]instrumentation.Instrumentable{
-			instruments.NewLeader(server.config.EtcdMachine, server.logger),
-			instruments.NewServer(server.config.EtcdMachine, server.logger),
-			instruments.NewStore(server.config.EtcdMachine, server.logger),
+			instruments.NewLeader(server.config.EtcdURL.String(), server.logger),
+			instruments.NewServer(server.config.EtcdURL.String(), server.logger),
+			instruments.NewStore(server.config.EtcdURL.String(), server.logger),
 		},
 	)
 

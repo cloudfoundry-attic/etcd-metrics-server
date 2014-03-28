@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/url"
 	"strings"
 
 	steno "github.com/cloudfoundry/gosteno"
@@ -12,10 +13,16 @@ import (
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
 )
 
-var etcdMachine = flag.String(
-	"etcdMachine",
-	"http://127.0.0.1:4001",
-	"etcd machine to instrument",
+var etcdScheme = flag.String(
+	"etcdScheme",
+	"http",
+	"scheme to use for etcd requests",
+)
+
+var etcdAddress = flag.String(
+	"etcdAddress",
+	"127.0.0.1:4001",
+	"etcd host:port to instrument",
 )
 
 var index = flag.Uint(
@@ -86,12 +93,17 @@ func main() {
 
 	registrar := collector_registrar.New(natsClient)
 
+	etcdURL := &url.URL{
+		Scheme: *etcdScheme,
+		Host:   *etcdAddress,
+	}
+
 	config := metrics_server.Config{
-		EtcdMachine: *etcdMachine,
-		Port:        *port,
-		Username:    *username,
-		Password:    *password,
-		Index:       *index,
+		EtcdURL:  etcdURL,
+		Port:     *port,
+		Username: *username,
+		Password: *password,
+		Index:    *index,
 	}
 
 	server := metrics_server.New(registrar, steno.NewLogger("etcd-metrics-server"), config)
