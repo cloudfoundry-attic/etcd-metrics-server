@@ -1,0 +1,38 @@
+{
+	"ImportPath": "github.com/cloudfoundry-incubator/etcd-metrics-server",
+	"GoVersion": "go1.2.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/cloudfoundry/gosteno",
+			"Comment": "scotty_09012012-40-g5eb8c6e",
+			"Rev": "5eb8c6e554f0dfc39d6468813b8ac19ec28fe74f"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gunk/test_server",
+			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gunk/urljoiner",
+			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent",
+			"Rev": "08f7e66ba7b35ce738966c7d87597fd5175c66e3"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/yagnats",
+			"Rev": "8bf15e48f3abf6db1765ff908ee678a6f347ce0a"
+		},
+		{
+			"ImportPath": "github.com/onsi/ginkgo",
+			"Rev": "3632cbe0b58a9005513942e9d4c4920e375d6778"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega",
+			"Rev": "bad854a45453ec22d99c8bd982e2302f64d3fc37"
+		}
+	]
+}

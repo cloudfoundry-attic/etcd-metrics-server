@@ -7,8 +7,8 @@ import (
 	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
 	"github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation"
 
-	"github.com/cloudfoundry-incubator/etcd-metrics/collector_registrar"
-	"github.com/cloudfoundry-incubator/etcd-metrics/instruments"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 )
 
 type MetricsServer struct {
@@ -64,7 +64,7 @@ func (server *MetricsServer) Start() error {
 			"username": component.StatusCredentials[0],
 			"password": component.StatusCredentials[1],
 		},
-		"etcd-metrics.server.listening",
+		"etcd-metrics-server.listening",
 	)
 
 	err = server.registrar.RegisterWithCollector(component)

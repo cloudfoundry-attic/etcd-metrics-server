@@ -8,8 +8,8 @@ import (
 	steno "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/yagnats"
 
-	"github.com/cloudfoundry-incubator/etcd-metrics/collector_registrar"
-	"github.com/cloudfoundry-incubator/etcd-metrics/metrics_server"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
 )
 
 var etcdMachine = flag.String(
@@ -87,7 +87,7 @@ func main() {
 		Password:    *password,
 	}
 
-	server := metrics_server.New(registrar, steno.NewLogger("etcd-metrics"), config)
+	server := metrics_server.New(registrar, steno.NewLogger("etcd-metrics-server"), config)
 
 	server.Start()
 

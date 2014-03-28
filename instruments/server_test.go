@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry/gunk/test_server"
 	"github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation"
 
-	. "github.com/cloudfoundry-incubator/etcd-metrics/instruments"
+	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 )
 
 var _ = Describe("Server Instrumentation", func() {

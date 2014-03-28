@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry/yagnats"
 	"github.com/cloudfoundry/yagnats/fakeyagnats"
 
-	. "github.com/cloudfoundry-incubator/etcd-metrics/collector_registrar"
+	. "github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
 )
 
 var _ = Describe("CollectorRegistrar", func() {
