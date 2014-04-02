@@ -28,7 +28,8 @@ func NewLeader(etcdAddr string, logger *gosteno.Logger) *Leader {
 
 func (leader *Leader) Emit() instrumentation.Context {
 	context := instrumentation.Context{
-		Name: "leader",
+		Name:    "leader",
+		Metrics: []instrumentation.Metric{},
 	}
 
 	var stats RaftFollowersStats

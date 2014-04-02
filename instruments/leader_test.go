@@ -115,6 +115,7 @@ var _ = Describe("Leader Instrumentation", func() {
 
 			It("does not report any metrics", func() {
 				context := leader.Emit()
+				Ω(context.Metrics).ShouldNot(BeNil())
 				Ω(context.Metrics).Should(BeEmpty())
 			})
 		})
