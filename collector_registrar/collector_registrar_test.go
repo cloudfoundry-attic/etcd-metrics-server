@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/registrars/collectorregistrar"
 	"github.com/cloudfoundry/yagnats"
 	"github.com/cloudfoundry/yagnats/fakeyagnats"
 
@@ -38,14 +37,14 @@ var _ = Describe("CollectorRegistrar", func() {
 		err := registrar.RegisterWithCollector(component)
 		Ω(err).ShouldNot(HaveOccurred())
 
-		expected := collectorregistrar.NewAnnounceComponentMessage(component)
+		expected := NewAnnounceComponentMessage(component)
 
 		expectedJson, err := json.Marshal(expected)
 		Ω(err).ShouldNot(HaveOccurred())
 
-		Ω(fakenats.PublishedMessages(collectorregistrar.AnnounceComponentMessageSubject)).Should(ContainElement(
+		Ω(fakenats.PublishedMessages(AnnounceComponentMessageSubject)).Should(ContainElement(
 			yagnats.Message{
-				Subject: collectorregistrar.AnnounceComponentMessageSubject,
+				Subject: AnnounceComponentMessageSubject,
 				Payload: expectedJson,
 			},
 		))
@@ -56,13 +55,13 @@ var _ = Describe("CollectorRegistrar", func() {
 			err := registrar.RegisterWithCollector(component)
 			Ω(err).ShouldNot(HaveOccurred())
 
-			expected := collectorregistrar.NewAnnounceComponentMessage(component)
+			expected := NewAnnounceComponentMessage(component)
 
 			expectedJson, err := json.Marshal(expected)
 			Ω(err).ShouldNot(HaveOccurred())
 
 			fakenats.PublishWithReplyTo(
-				collectorregistrar.DiscoverComponentMessageSubject,
+				DiscoverComponentMessageSubject,
 				"reply-subject",
 				nil,
 			)
@@ -80,7 +79,7 @@ var _ = Describe("CollectorRegistrar", func() {
 		disaster := errors.New("oh no!")
 
 		BeforeEach(func() {
-			fakenats.WhenPublishing(collectorregistrar.AnnounceComponentMessageSubject, func() error {
+			fakenats.WhenPublishing(AnnounceComponentMessageSubject, func() error {
 				return disaster
 			})
 		})
@@ -95,7 +94,7 @@ var _ = Describe("CollectorRegistrar", func() {
 		disaster := errors.New("oh no!")
 
 		BeforeEach(func() {
-			fakenats.WhenSubscribing(collectorregistrar.DiscoverComponentMessageSubject, func() error {
+			fakenats.WhenSubscribing(DiscoverComponentMessageSubject, func() error {
 				return disaster
 			})
 		})
