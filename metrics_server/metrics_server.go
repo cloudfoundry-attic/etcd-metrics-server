@@ -1,13 +1,14 @@
 package metrics_server
 
 import (
-	"github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
 	"net/url"
 	"strconv"
 
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
+	"github.com/cloudfoundry-incubator/metricz"
+	"github.com/cloudfoundry-incubator/metricz/instrumentation"
+
 	"github.com/cloudfoundry/gosteno"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation"
 
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
@@ -38,7 +39,7 @@ func New(registrar collector_registrar.CollectorRegistrar, logger *gosteno.Logge
 }
 
 func (server *MetricsServer) Start() error {
-	component, err := cfcomponent.NewComponent(
+	component, err := metricz.NewComponent(
 		server.logger,
 		"etcd",
 		server.config.Index,

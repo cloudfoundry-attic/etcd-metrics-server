@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/urljoiner"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation"
 )
 
 type Leader struct {

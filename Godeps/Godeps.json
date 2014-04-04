@@ -23,7 +23,15 @@
 			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent",
+			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/auth",
+			"Rev": "cbfe02db0270e435eaae0239a9c2eb4bffde94e5"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation",
+			"Rev": "cbfe02db0270e435eaae0239a9c2eb4bffde94e5"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/localip",
 			"Rev": "cbfe02db0270e435eaae0239a9c2eb4bffde94e5"
 		},
 		{

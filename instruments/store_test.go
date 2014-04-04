@@ -9,9 +9,9 @@ import (
 
 	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/test_server"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
+	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 )
 
 var _ = Describe("Store Instrumentation", func() {
