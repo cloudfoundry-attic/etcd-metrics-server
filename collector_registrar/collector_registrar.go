@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/registrars/collectorregistrar"
 	"github.com/cloudfoundry/yagnats"
 )
 
@@ -23,7 +22,7 @@ func New(natsClient yagnats.NATSClient) CollectorRegistrar {
 }
 
 func (registrar *natsCollectorRegistrar) RegisterWithCollector(component cfcomponent.Component) error {
-	message := collectorregistrar.NewAnnounceComponentMessage(component)
+	message := NewAnnounceComponentMessage(component)
 
 	messageJson, err := json.Marshal(message)
 	if err != nil {
@@ -31,7 +30,7 @@ func (registrar *natsCollectorRegistrar) RegisterWithCollector(component cfcompo
 	}
 
 	_, err = registrar.natsClient.Subscribe(
-		collectorregistrar.DiscoverComponentMessageSubject,
+		DiscoverComponentMessageSubject,
 		func(msg *yagnats.Message) {
 			registrar.natsClient.Publish(msg.ReplyTo, messageJson)
 		},
@@ -41,7 +40,7 @@ func (registrar *natsCollectorRegistrar) RegisterWithCollector(component cfcompo
 	}
 
 	err = registrar.natsClient.Publish(
-		collectorregistrar.AnnounceComponentMessageSubject,
+		AnnounceComponentMessageSubject,
 		messageJson,
 	)
 	if err != nil {
