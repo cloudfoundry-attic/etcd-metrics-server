@@ -9,8 +9,8 @@ import (
 	steno "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/yagnats"
 
-	"github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
+	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 )
 
 var etcdScheme = flag.String(

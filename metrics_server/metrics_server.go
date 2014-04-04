@@ -10,8 +10,8 @@ import (
 
 	"github.com/cloudfoundry/gosteno"
 
-	"github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
+	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 )
 
 type MetricsServer struct {
