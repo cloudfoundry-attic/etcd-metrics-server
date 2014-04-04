@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cloudfoundry-incubator/metricz/auth"
+	"github.com/cloudfoundry-incubator/metricz/instrumentation"
+	"github.com/cloudfoundry-incubator/metricz/localip"
 	"github.com/cloudfoundry/gosteno"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/auth"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/instrumentation"
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent/localip"
 )
 
 type Component struct {
