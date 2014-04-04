@@ -3,12 +3,12 @@ package collector_registrar
 import (
 	"encoding/json"
 
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
+	"github.com/cloudfoundry-incubator/metricz"
 	"github.com/cloudfoundry/yagnats"
 )
 
 type CollectorRegistrar interface {
-	RegisterWithCollector(cfcomponent.Component) error
+	RegisterWithCollector(metricz.Component) error
 }
 
 type natsCollectorRegistrar struct {
@@ -21,7 +21,7 @@ func New(natsClient yagnats.NATSClient) CollectorRegistrar {
 	}
 }
 
-func (registrar *natsCollectorRegistrar) RegisterWithCollector(component cfcomponent.Component) error {
+func (registrar *natsCollectorRegistrar) RegisterWithCollector(component metricz.Component) error {
 	message := NewAnnounceComponentMessage(component)
 
 	messageJson, err := json.Marshal(message)

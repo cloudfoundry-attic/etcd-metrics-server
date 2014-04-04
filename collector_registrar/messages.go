@@ -3,7 +3,7 @@ package collector_registrar
 import (
 	"fmt"
 
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
+	"github.com/cloudfoundry-incubator/metricz"
 )
 
 const AnnounceComponentMessageSubject = "vcap.component.announce"
@@ -17,12 +17,12 @@ type AnnounceComponentMessage struct {
 	Credentials []string `json:"credentials"`
 }
 
-func NewAnnounceComponentMessage(cfc cfcomponent.Component) *AnnounceComponentMessage {
+func NewAnnounceComponentMessage(component metricz.Component) *AnnounceComponentMessage {
 	return &AnnounceComponentMessage{
-		Type:        cfc.Type,
-		Index:       cfc.Index,
-		Host:        fmt.Sprintf("%s:%d", cfc.IpAddress, cfc.StatusPort),
-		UUID:        fmt.Sprintf("%d-%s", cfc.Index, cfc.UUID),
-		Credentials: cfc.StatusCredentials,
+		Type:        component.Type,
+		Index:       component.Index,
+		Host:        fmt.Sprintf("%s:%d", component.IpAddress, component.StatusPort),
+		UUID:        fmt.Sprintf("%d-%s", component.Index, component.UUID),
+		Credentials: component.StatusCredentials,
 	}
 }

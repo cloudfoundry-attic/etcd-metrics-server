@@ -4,26 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/cloudfoundry/yagnats"
+	"github.com/cloudfoundry/yagnats/fakeyagnats"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
-	"github.com/cloudfoundry/yagnats"
-	"github.com/cloudfoundry/yagnats/fakeyagnats"
-
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/collector_registrar"
+	"github.com/cloudfoundry-incubator/metricz"
 )
 
 var _ = Describe("CollectorRegistrar", func() {
 	var fakenats *fakeyagnats.FakeYagnats
 	var registrar CollectorRegistrar
-	var component cfcomponent.Component
+	var component metricz.Component
 
 	BeforeEach(func() {
 		fakenats = fakeyagnats.New()
 		registrar = New(fakenats)
 
-		component = cfcomponent.Component{
+		component = metricz.Component{
 			IpAddress:         "1.2.3.4",
 			Type:              "Some Component",
 			Index:             1,
