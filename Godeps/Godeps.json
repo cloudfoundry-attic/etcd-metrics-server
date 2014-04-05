@@ -15,6 +15,10 @@
 			"Rev": "5eb8c6e554f0dfc39d6468813b8ac19ec28fe74f"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry/gunk/natsrunner",
+			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry/gunk/test_server",
 			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
 		},
@@ -27,8 +31,21 @@
 			"Rev": "cbfe02db0270e435eaae0239a9c2eb4bffde94e5"
 		},
 		{
+			"ImportPath": "github.com/cloudfoundry/storeadapter",
+			"Rev": "93681214aa36bc47abcdd378aa532de78a687350"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry/yagnats",
 			"Rev": "8bf15e48f3abf6db1765ff908ee678a6f347ce0a"
+		},
+		{
+			"ImportPath": "github.com/coreos/go-etcd/etcd",
+			"Comment": "v0.2.0-rc1-96-g1e26d8e",
+			"Rev": "1e26d8ee84cf9b1000d2af8acfb45b2521f49be5"
+		},
+		{
+			"ImportPath": "github.com/nu7hatch/gouuid",
+			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
@@ -37,6 +54,10 @@
 		{
 			"ImportPath": "github.com/onsi/gomega",
 			"Rev": "bad854a45453ec22d99c8bd982e2302f64d3fc37"
+		},
+		{
+			"ImportPath": "github.com/vito/cmdtest",
+			"Rev": "c56fe40f700cbe87257137c14ae739c59897fc6b"
 		}
 	]
 }
