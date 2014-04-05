@@ -59,7 +59,7 @@ var _ = Describe("Main", func() {
 		Eventually(func() (err error) {
 			_, err = net.Dial("tcp", reg.Host)
 			return err
-		}, 5, 0.1).ShouldNot(HaveOccurred())
+		}, 15, 0.1).ShouldNot(HaveOccurred())
 
 		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/varz", reg.Host), nil)
 		Ω(err).ShouldNot(HaveOccurred())
