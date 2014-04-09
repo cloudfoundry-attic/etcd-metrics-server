@@ -37,10 +37,13 @@ var _ = Describe("Main", func() {
 		Credentials []string `json:credentials`
 	}
 
-	It("starts the server correctly", func() {
+	It("starts the server correctly", func(done Done) {
 		var reg = new(registration)
+
+		receivedAnnounce := make(chan bool)
 		nats.MessageBus.Subscribe("vcap.component.announce", func(message *yagnats.Message) {
 			err := json.Unmarshal(message.Payload, reg)
+			receivedAnnounce <- true
 			Ω(err).ShouldNot(HaveOccurred())
 		})
 
@@ -56,10 +59,9 @@ var _ = Describe("Main", func() {
 		}()
 		Ω(err).ShouldNot(HaveOccurred())
 
-		Eventually(func() (err error) {
-			_, err = net.Dial("tcp", reg.Host)
-			return err
-		}, 15, 0.1).ShouldNot(HaveOccurred())
+		<-receivedAnnounce
+		_, err = net.Dial("tcp", reg.Host)
+		Ω(err).ShouldNot(HaveOccurred())
 
 		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/varz", reg.Host), nil)
 		Ω(err).ShouldNot(HaveOccurred())
@@ -68,5 +70,7 @@ var _ = Describe("Main", func() {
 		resp, err := http.DefaultClient.Do(req)
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(resp.Status).Should(ContainSubstring("200"))
-	})
+
+		close(done)
+	}, 10)
 })
