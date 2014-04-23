@@ -16,7 +16,7 @@ go get -u github.com/apcera/gnatsd
 
 go install github.com/onsi/ginkgo/ginkgo
 
-ginkgo -r -failOnPending -randomizeAllSpecs -race -nodes=4
+ginkgo -r -cover -failOnPending -randomizeAllSpecs -race -nodes=4
 
 # don't leak coveralls token
 set +x
