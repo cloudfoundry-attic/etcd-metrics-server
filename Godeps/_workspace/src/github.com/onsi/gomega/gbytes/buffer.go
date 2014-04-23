@@ -1,9 +1,11 @@
 /*
-Package gbytes provides a buffer that supports incrementally detecting input
+
+gbytes provides a buffer that supports incrementally detecting input
 
 More documentation coming soon!
 
 */
+
 package gbytes
 
 import (

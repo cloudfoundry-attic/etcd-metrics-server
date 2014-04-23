@@ -2,7 +2,6 @@ package format_test
 
 import (
 	"fmt"
-	"strings"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/format"
@@ -58,22 +57,6 @@ var _ = Describe("Format", func() {
 			valueRepresentation = fmt.Sprintf(valueRepresentation, args...)
 		}
 		return Equal(fmt.Sprintf("%s<%s>: %s", Indent, typeRepresentation, valueRepresentation))
-	}
-
-	matchRegexp := func(typeRepresentation string, valueRepresentation string, args ...interface{}) OmegaMatcher {
-		if len(args) > 0 {
-			valueRepresentation = fmt.Sprintf(valueRepresentation, args...)
-		}
-		return MatchRegexp(fmt.Sprintf("%s<%s>: %s", Indent, typeRepresentation, valueRepresentation))
-	}
-
-	hashMatchingRegexp := func(entries ...string) string {
-		entriesSwitch := "(" + strings.Join(entries, "|") + ")"
-		arr := make([]string, len(entries))
-		for i := range arr {
-			arr[i] = entriesSwitch
-		}
-		return "{" + strings.Join(arr, ", ") + "}"
 	}
 
 	Describe("Message", func() {
@@ -145,7 +128,7 @@ var _ = Describe("Format", func() {
 		Describe("formatting []byte slices", func() {
 			It("should present them as strings", func() {
 				b := []byte("a\nb\nc")
-				Ω(Object(b, 1)).Should(match("[]uint8 | len:5, cap:8", `a
+				Ω(Object(b, 1)).Should(match("[]uint8 | len:5, cap:5", `a
     b
     c`))
 			})
@@ -226,7 +209,7 @@ var _ = Describe("Format", func() {
 				m := make(map[int]bool, 5)
 				m[3] = true
 				m[4] = false
-				Ω(Object(m, 1)).Should(matchRegexp(`map\[int\]bool \| len:2`, hashMatchingRegexp("3: true", "4: false")))
+				Ω(Object(m, 1)).Should(match("map[int]bool | len:2", "{3: true, 4: false}"))
 			})
 
 			Context("when the slice contains long entries", func() {
@@ -236,11 +219,11 @@ var _ = Describe("Format", func() {
 					m["Toby Ziegler"] = []byte("Richard Schiff")
 					m["CJ Cregg"] = []byte("Allison Janney")
 					expected := `{
-        ("Josiah Edward Bartlet": "Martin Sheen"|"Toby Ziegler": "Richard Schiff"|"CJ Cregg": "Allison Janney"),
-        ("Josiah Edward Bartlet": "Martin Sheen"|"Toby Ziegler": "Richard Schiff"|"CJ Cregg": "Allison Janney"),
-        ("Josiah Edward Bartlet": "Martin Sheen"|"Toby Ziegler": "Richard Schiff"|"CJ Cregg": "Allison Janney"),
+        "Josiah Edward Bartlet": "Martin Sheen",
+        "Toby Ziegler": "Richard Schiff",
+        "CJ Cregg": "Allison Janney",
     }`
-					Ω(Object(m, 1)).Should(matchRegexp(`map\[string\]\[\]uint8 \| len:3`, expected))
+					Ω(Object(m, 1)).Should(match("map[string][]uint8 | len:3", expected))
 				})
 			})
 		})
@@ -296,7 +279,7 @@ var _ = Describe("Format", func() {
 		Describe("formatting aliased types", func() {
 			It("should print out the correct alias type", func() {
 				Ω(Object(StringAlias("alias"), 1)).Should(match("format_test.StringAlias", `alias`))
-				Ω(Object(ByteAlias("alias"), 1)).Should(match("format_test.ByteAlias | len:5, cap:8", `alias`))
+				Ω(Object(ByteAlias("alias"), 1)).Should(match("format_test.ByteAlias | len:5, cap:5", `alias`))
 				Ω(Object(IntAlias(3), 1)).Should(match("format_test.IntAlias", "3"))
 			})
 		})
@@ -315,8 +298,8 @@ var _ = Describe("Format", func() {
 					},
 				}
 				expected := `{
-        Strings: \["lots", "of", "short", "strings"\],
-        SimpleThings: \[
+        Strings: ["lots", "of", "short", "strings"],
+        SimpleThings: [
             {Name: "short", Enumeration: 7, Veritas: true, Data: "succinct", secret: 17},
             {
                 Name: "something longer",
@@ -325,13 +308,13 @@ var _ = Describe("Format", func() {
                 Data: "designed to wrap around nicely",
                 secret: 30,
             },
-        \],
+        ],
         DataMaps: {
-            (17: "some substantially longer chunks of data"|1138: "that should make things wrap"),
-            (17: "some substantially longer chunks of data"|1138: "that should make things wrap"),
+            17: "some substantially longer chunks of data",
+            1138: "that should make things wrap",
         },
     }`
-				Ω(Object(s, 1)).Should(matchRegexp(`format_test\.ComplexStruct`, expected))
+				Ω(Object(s, 1)).Should(match("format_test.ComplexStruct", expected))
 			})
 		})
 	})
@@ -365,21 +348,21 @@ var _ = Describe("Format", func() {
         uintValue: 4,
         uintptrValue: 0x5,
         floatValue: 6,
-        complexValue: \(5\+3i\),
+        complexValue: (5+3i),
         chanValue: %p,
         funcValue: %p,
         pointerValue: 5,
-        sliceValue: \["string", "slice"\],
+        sliceValue: ["string", "slice"],
         byteSliceValue: "bytes",
         stringValue: "a string",
-        arrValue: \[11, 12, 13\],
-        byteArrValue: \[17, 20, 32\],
-        mapValue: %s,
+        arrValue: [11, 12, 13],
+        byteArrValue: [17, 20, 32],
+        mapValue: {"a key": 20, "b key": 30},
         structValue: {Exported: "exported"},
         interfaceValue: {"a key": 17},
-    }`, s.chanValue, s.funcValue, hashMatchingRegexp(`"a key": 20`, `"b key": 30`))
+    }`, s.chanValue, s.funcValue)
 
-			Ω(Object(s, 1)).Should(matchRegexp(`format_test\.SecretiveStruct`, expected))
+			Ω(Object(s, 1)).Should(match("format_test.SecretiveStruct", expected))
 		})
 	})
 
@@ -392,8 +375,7 @@ var _ = Describe("Format", func() {
 			outerHash["integer"] = 2
 			outerHash["map"] = innerHash
 
-			expected := hashMatchingRegexp(`"integer": 2`, `"map": {"inner": 3}`)
-			Ω(Object(outerHash, 1)).Should(matchRegexp(`map\[string\]interface {} \| len:2`, expected))
+			Ω(Object(outerHash, 1)).Should(match("map[string]interface {} | len:2", `{"integer": 2, "map": {"inner": 3}}`))
 		})
 	})
 
