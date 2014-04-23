@@ -3,6 +3,7 @@ package main_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -50,6 +51,7 @@ var _ = Describe("Main", func() {
 		metricsServerPath, err := cmdtest.Build("github.com/cloudfoundry-incubator/etcd-metrics-server")
 		Ω(err).ShouldNot(HaveOccurred())
 		serverCmd := exec.Command(metricsServerPath,
+			"-jobName", "etcd-diego",
 			"-port", "5678",
 			"-etcdAddress", "127.0.0.1:5001")
 		serverCmd.Env = os.Environ()
@@ -69,8 +71,13 @@ var _ = Describe("Main", func() {
 
 		resp, err := http.DefaultClient.Do(req)
 		Ω(err).ShouldNot(HaveOccurred())
+
 		Ω(resp.Status).Should(ContainSubstring("200"))
 
+		body, err := ioutil.ReadAll(resp.Body)
+		Ω(err).ShouldNot(HaveOccurred())
+
+		Ω(body).Should(ContainSubstring("etcd-diego"))
 		close(done)
 	}, 10)
 })

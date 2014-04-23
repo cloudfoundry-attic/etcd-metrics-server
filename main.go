@@ -13,6 +13,12 @@ import (
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 )
 
+var jobName = flag.String(
+	"jobName",
+	"etcd",
+	"component name for collector",
+)
+
 var etcdScheme = flag.String(
 	"etcdScheme",
 	"http",
@@ -99,6 +105,7 @@ func main() {
 	}
 
 	config := metrics_server.Config{
+		JobName:  *jobName,
 		EtcdURL:  etcdURL,
 		Port:     *port,
 		Username: *username,

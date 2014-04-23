@@ -20,6 +20,8 @@ type MetricsServer struct {
 }
 
 type Config struct {
+	JobName string
+
 	Index uint
 
 	EtcdURL *url.URL
@@ -40,7 +42,7 @@ func New(registrar collector_registrar.CollectorRegistrar, logger *gosteno.Logge
 func (server *MetricsServer) Start() error {
 	component, err := metricz.NewComponent(
 		server.logger,
-		"etcd",
+		server.config.JobName,
 		server.config.Index,
 		health_check.New("tcp", server.config.EtcdURL.Host, server.logger),
 		uint32(server.config.Port),
