@@ -1,6 +1,7 @@
 package health_check_test
 
 import (
+	"net"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -38,7 +39,13 @@ var _ = Describe("HealthCheck", func() {
 
 	Context("when the server is down", func() {
 		BeforeEach(func() {
-			check = New("tcp", "127.0.0.1:0", gosteno.NewLogger("health-check-test"))
+			listener, err := net.Listen("tcp", "127.0.0.1:0")
+			Ω(err).ShouldNot(HaveOccurred())
+
+			err = listener.Close()
+			Ω(err).ShouldNot(HaveOccurred())
+
+			check = New("tcp", listener.Addr().String(), gosteno.NewLogger("health-check-test"))
 		})
 
 		It("returns false", func() {

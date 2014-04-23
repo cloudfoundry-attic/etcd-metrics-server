@@ -2,6 +2,7 @@ package health_check
 
 import (
 	"net"
+	"time"
 
 	"github.com/cloudfoundry/gosteno"
 )
@@ -23,7 +24,7 @@ func New(network, addr string, logger *gosteno.Logger) *HealthCheck {
 }
 
 func (check *HealthCheck) Ok() bool {
-	conn, err := net.Dial(check.network, check.addr)
+	conn, err := net.DialTimeout(check.network, check.addr, time.Second)
 	if err != nil {
 		check.logger.Errord(
 			map[string]interface{}{
