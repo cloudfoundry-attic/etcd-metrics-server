@@ -2,7 +2,6 @@ package metrics_server
 
 import (
 	"net/url"
-	"strconv"
 
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
 	"github.com/cloudfoundry-incubator/metricz"
@@ -58,16 +57,6 @@ func (server *MetricsServer) Start() error {
 	}
 
 	go component.StartMonitoringEndpoints()
-
-	server.logger.Infod(
-		map[string]interface{}{
-			"ip":       component.IpAddress,
-			"port":     strconv.Itoa(int(component.StatusPort)),
-			"username": component.StatusCredentials[0],
-			"password": component.StatusCredentials[1],
-		},
-		"etcd-metrics-server.listening",
-	)
 
 	err = server.registrar.RegisterWithCollector(component)
 	if err != nil {

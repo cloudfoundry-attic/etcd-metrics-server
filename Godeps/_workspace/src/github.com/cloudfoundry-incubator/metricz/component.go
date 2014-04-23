@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 
 	"github.com/cloudfoundry-incubator/metricz/auth"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
@@ -14,15 +16,20 @@ import (
 )
 
 type Component struct {
-	*gosteno.Logger
-	IpAddress         string
-	HealthMonitor     HealthMonitor
-	Type              string //Used by the collector to find data processing class
-	Index             uint
-	UUID              string
-	StatusPort        uint32
-	StatusCredentials []string
-	Instrumentables   []instrumentation.Instrumentable
+	name              string //Used by the collector to find data processing class
+	ipAddress         string
+	healthMonitor     HealthMonitor
+	index             uint
+	uuid              string
+	statusPort        uint32
+	statusCredentials []string
+	instrumentables   []instrumentation.Instrumentable
+
+	logger *gosteno.Logger
+
+	listener  net.Listener
+	quitChan  chan bool
+	startChan chan bool
 }
 
 const (
@@ -30,7 +37,15 @@ const (
 	password
 )
 
-func NewComponent(logger *gosteno.Logger, componentType string, index uint, heathMonitor HealthMonitor, statusPort uint32, statusCreds []string, instrumentables []instrumentation.Instrumentable) (Component, error) {
+func NewComponent(
+	logger *gosteno.Logger,
+	name string,
+	index uint,
+	heathMonitor HealthMonitor,
+	statusPort uint32,
+	statusCreds []string,
+	instrumentables []instrumentation.Instrumentable,
+) (Component, error) {
 	ip, err := localip.LocalIP()
 	if err != nil {
 		return Component{}, err
@@ -56,33 +71,87 @@ func NewComponent(logger *gosteno.Logger, componentType string, index uint, heat
 	}
 
 	return Component{
-		Logger:            logger,
-		IpAddress:         ip,
-		Type:              componentType,
-		Index:             index,
-		HealthMonitor:     heathMonitor,
-		StatusPort:        statusPort,
-		StatusCredentials: statusCreds,
-		Instrumentables:   instrumentables,
+		name:              name,
+		ipAddress:         ip,
+		index:             index,
+		healthMonitor:     heathMonitor,
+		statusPort:        statusPort,
+		statusCredentials: statusCreds,
+		instrumentables:   instrumentables,
+
+		logger: logger,
+
+		quitChan:  make(chan bool, 1),
+		startChan: make(chan bool, 1),
 	}, nil
 }
 
-func (c Component) StartMonitoringEndpoints() error {
+func (c *Component) StartMonitoringEndpoints() error {
 	mux := http.NewServeMux()
-	auth := auth.NewBasicAuth("Realm", c.StatusCredentials)
+	auth := auth.NewBasicAuth("Realm", c.statusCredentials)
 	mux.HandleFunc("/healthz", healthzHandlerFor(c))
 	mux.HandleFunc("/varz", auth.Wrap(varzHandlerFor(c)))
 
-	c.Debugf("Starting endpoints for component %s with collect at ip: %s, port: %d, username: %s, password %s", c.UUID, c.IpAddress, c.StatusPort, c.StatusCredentials[username], c.StatusCredentials[password])
-	err := http.ListenAndServe(fmt.Sprintf("%s:%d", c.IpAddress, c.StatusPort), mux)
-	return err
+	c.logger.Debugd(
+		map[string]interface{}{
+			"uuid":     c.uuid,
+			"ip":       c.ipAddress,
+			"port":     c.statusPort,
+			"username": c.statusCredentials[username],
+			"password": c.statusCredentials[password],
+		},
+		"component.varz.start",
+	)
+
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", c.ipAddress, c.statusPort))
+	if err != nil {
+		return err
+	}
+
+	c.listener = listener
+	c.startChan <- true
+
+	server := &http.Server{Handler: mux}
+	err = server.Serve(listener)
+	select {
+	case <-c.quitChan:
+		return nil
+	default:
+		return err
+	}
 }
 
-func healthzHandlerFor(c Component) func(w http.ResponseWriter, req *http.Request) {
+func (c *Component) StopMonitoringEndpoints() {
+	<-c.startChan
+	c.quitChan <- true
+	c.listener.Close()
+}
+
+func (c *Component) Name() string {
+	return c.name
+}
+
+func (c *Component) Index() uint {
+	return c.index
+}
+
+func (c *Component) UUID() string {
+	return c.uuid
+}
+
+func (c Component) URL() *url.URL {
+	return &url.URL{
+		Scheme: "http",
+		Host:   net.JoinHostPort(c.ipAddress, fmt.Sprintf("%d", c.statusPort)),
+		User:   url.UserPassword(c.statusCredentials[0], c.statusCredentials[1]),
+	}
+}
+
+func healthzHandlerFor(c *Component) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
-		if c.HealthMonitor.Ok() {
+		if c.healthMonitor.Ok() {
 			fmt.Fprintf(w, "ok")
 		} else {
 			fmt.Fprintf(w, "bad")
@@ -90,10 +159,9 @@ func healthzHandlerFor(c Component) func(w http.ResponseWriter, req *http.Reques
 	}
 }
 
-func varzHandlerFor(c Component) func(w http.ResponseWriter, req *http.Request) {
+func varzHandlerFor(c *Component) func(w http.ResponseWriter, req *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
-
-		message, err := instrumentation.NewVarzMessage(c.Type, c.Instrumentables)
+		message, err := instrumentation.NewVarzMessage(c.name, c.instrumentables)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, err.Error())

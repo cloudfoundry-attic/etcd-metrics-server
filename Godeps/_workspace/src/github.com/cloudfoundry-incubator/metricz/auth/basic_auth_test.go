@@ -1,11 +1,37 @@
-package auth
+package auth_test
 
 import (
-	"github.com/stretchr/testify/assert"
+	. "github.com/cloudfoundry-incubator/metricz/auth"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 )
+
+var _ = Describe("Testing with Ginkgo", func() {
+	It("requires basic auth", func() {
+		w := performMockRequest("realm")
+		Ω(w.Code).Should(Equal(401))
+		Ω(w.HeaderMap.Get("WWW-Authenticate")).Should(Equal(`Basic realm="realm"`))
+		Ω(w.Body.String()).Should(Equal("401 Unauthorized"))
+	})
+
+	It("requires prompts with given realm", func() {
+		w := performMockRequest("myrealm")
+		Ω(w.HeaderMap.Get("WWW-Authenticate")).Should(Equal(`Basic realm="myrealm"`))
+	})
+
+	It("fails with bad credentials", func() {
+		w := performMockRequest("realm", "baduser", "badpassword")
+		Ω(w.Code).Should(Equal(401))
+	})
+
+	It("succeeds with good credentials", func() {
+		w := performMockRequest("realm", "user", "password")
+		Ω(w.Code).Should(Equal(200))
+		Ω(w.Body.String()).Should(Equal("OK"))
+	})
+})
 
 func performMockRequest(args ...string) *httptest.ResponseRecorder {
 	handler := func(w http.ResponseWriter, req *http.Request) {
@@ -20,27 +46,4 @@ func performMockRequest(args ...string) *httptest.ResponseRecorder {
 	}
 	wrappedHandler(w, req)
 	return w
-}
-
-func TestRequiresBasicAuth(t *testing.T) {
-	w := performMockRequest("realm")
-	assert.Equal(t, w.Code, 401)
-	assert.Equal(t, w.HeaderMap.Get("WWW-Authenticate"), `Basic realm="realm"`)
-	assert.Equal(t, w.Body.String(), "401 Unauthorized")
-}
-
-func TestRequiresPromptsWithGivenRealm(t *testing.T) {
-	w := performMockRequest("myrealm")
-	assert.Equal(t, w.HeaderMap.Get("WWW-Authenticate"), `Basic realm="myrealm"`)
-}
-
-func TestFailsWithBadCredentials(t *testing.T) {
-	w := performMockRequest("realm", "baduser", "badpassword")
-	assert.Equal(t, w.Code, 401)
-}
-
-func TestSucceedsWithGoodCredentials(t *testing.T) {
-	w := performMockRequest("realm", "user", "password")
-	assert.Equal(t, w.Code, 200)
-	assert.Equal(t, w.Body.String(), "OK")
 }

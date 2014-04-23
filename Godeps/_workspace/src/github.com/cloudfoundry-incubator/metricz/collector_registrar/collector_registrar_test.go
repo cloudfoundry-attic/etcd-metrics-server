@@ -22,14 +22,17 @@ var _ = Describe("CollectorRegistrar", func() {
 		fakenats = fakeyagnats.New()
 		registrar = New(fakenats)
 
-		component = metricz.Component{
-			IpAddress:         "1.2.3.4",
-			Type:              "Some Component",
-			Index:             1,
-			StatusPort:        5678,
-			StatusCredentials: []string{"user", "pass"},
-			UUID:              "abc123",
-		}
+		var err error
+		component, err = metricz.NewComponent(
+			nil,
+			"Some Component",
+			1,
+			nil,
+			5678,
+			[]string{"user", "pass"},
+			nil,
+		)
+		Ω(err).ShouldNot(HaveOccurred())
 	})
 
 	It("announces the component to the collector", func() {

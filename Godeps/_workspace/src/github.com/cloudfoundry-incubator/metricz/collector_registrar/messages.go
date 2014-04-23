@@ -18,11 +18,14 @@ type AnnounceComponentMessage struct {
 }
 
 func NewAnnounceComponentMessage(component metricz.Component) *AnnounceComponentMessage {
+	url := component.URL()
+	password, _ := url.User.Password()
+
 	return &AnnounceComponentMessage{
-		Type:        component.Type,
-		Index:       component.Index,
-		Host:        fmt.Sprintf("%s:%d", component.IpAddress, component.StatusPort),
-		UUID:        fmt.Sprintf("%d-%s", component.Index, component.UUID),
-		Credentials: component.StatusCredentials,
+		Type:        component.Name(),
+		Index:       component.Index(),
+		Host:        url.Host,
+		UUID:        fmt.Sprintf("%d-%s", component.Index(), component.UUID()),
+		Credentials: []string{url.User.Username(), password}, //component.StatusCredentials,
 	}
 }

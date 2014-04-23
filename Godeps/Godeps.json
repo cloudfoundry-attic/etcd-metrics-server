@@ -7,7 +7,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/metricz",
-			"Rev": "d1568e035f4c8f4abcc7304edf057f8f47e95c3a"
+			"Rev": "d9bdb1b78384f05faa694175782055d5ba3966b5"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gosteno",
@@ -16,23 +16,27 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/natsrunner",
-			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
+			"Rev": "8c166e2e973df123b29351b396bb8d356192bd81"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gunk/runner_support",
+			"Rev": "8c166e2e973df123b29351b396bb8d356192bd81"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/test_server",
-			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
+			"Rev": "8c166e2e973df123b29351b396bb8d356192bd81"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/urljoiner",
-			"Rev": "0dfce73f2060a23c01134f5880295b70cc325e14"
+			"Rev": "8c166e2e973df123b29351b396bb8d356192bd81"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/localip",
-			"Rev": "cbfe02db0270e435eaae0239a9c2eb4bffde94e5"
+			"Rev": "90e9aee1f6ae4ba750c6656c3fb529bf217b4908"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/storeadapter",
-			"Rev": "93681214aa36bc47abcdd378aa532de78a687350"
+			"Rev": "75297e7f1b7c70951bb78c8122bc266288870829"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/yagnats",
@@ -49,15 +53,15 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Rev": "3632cbe0b58a9005513942e9d4c4920e375d6778"
+			"Rev": "d941db095ac86d29f8304472895d2fd512bf8f57"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "bad854a45453ec22d99c8bd982e2302f64d3fc37"
+			"Rev": "4fbbd0c858838cb79f21ce9da9dbb4129fcce862"
 		},
 		{
 			"ImportPath": "github.com/vito/cmdtest",
-			"Rev": "c56fe40f700cbe87257137c14ae739c59897fc6b"
+			"Rev": "215c451d78ba1382cbccb2736c280c60a11b4b86"
 		}
 	]
 }
