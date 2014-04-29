@@ -32,7 +32,7 @@ var _ = Describe("Main", func() {
 	AfterEach(func() {
 		nats.Stop()
 		etcdRunner.Stop()
-		session.Kill()
+		session.Kill().Wait()
 	})
 
 	type registration struct {

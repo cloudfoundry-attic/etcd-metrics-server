@@ -16,15 +16,15 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/natsrunner",
-			"Rev": "6569cfd2c9942e256ddf80ddedbecbc7c47816dc"
+			"Rev": "93aaeec320a837a8d6b47ecbb4b4eab957a3e1de"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/test_server",
-			"Rev": "6569cfd2c9942e256ddf80ddedbecbc7c47816dc"
+			"Rev": "93aaeec320a837a8d6b47ecbb4b4eab957a3e1de"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/urljoiner",
-			"Rev": "6569cfd2c9942e256ddf80ddedbecbc7c47816dc"
+			"Rev": "93aaeec320a837a8d6b47ecbb4b4eab957a3e1de"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/localip",
@@ -53,7 +53,7 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "f9500475e531cb74be7ad97785e5bd92817c802d"
+			"Rev": "e287925a206d2f7cf070e08c082ed93dd38fcecc"
 		}
 	]
 }
