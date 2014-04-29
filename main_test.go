@@ -14,12 +14,13 @@ import (
 	"github.com/cloudfoundry/yagnats"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/vito/cmdtest"
+	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Main", func() {
 	var nats *natsrunner.NATSRunner
 	var etcdRunner *etcdstorerunner.ETCDClusterRunner
+	var session *gexec.Session
 
 	BeforeEach(func() {
 		nats = natsrunner.NewNATSRunner(4222)
@@ -31,6 +32,7 @@ var _ = Describe("Main", func() {
 	AfterEach(func() {
 		nats.Stop()
 		etcdRunner.Stop()
+		session.Kill()
 	})
 
 	type registration struct {
@@ -48,17 +50,14 @@ var _ = Describe("Main", func() {
 			Ω(err).ShouldNot(HaveOccurred())
 		})
 
-		metricsServerPath, err := cmdtest.Build("github.com/cloudfoundry-incubator/etcd-metrics-server")
-		Ω(err).ShouldNot(HaveOccurred())
+		var err error
 		serverCmd := exec.Command(metricsServerPath,
 			"-jobName", "etcd-diego",
 			"-port", "5678",
 			"-etcdAddress", "127.0.0.1:5001")
 		serverCmd.Env = os.Environ()
-		session, err := cmdtest.Start(serverCmd)
-		defer func() {
-			session.Cmd.Process.Kill()
-		}()
+
+		session, err = gexec.Start(serverCmd, GinkgoWriter, GinkgoWriter)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		<-receivedAnnounce
