@@ -16,32 +16,32 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/natsrunner",
-			"Rev": "93aaeec320a837a8d6b47ecbb4b4eab957a3e1de"
+			"Rev": "7961fb4a446e96ef5a35fee37aa4b4945dca6745"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/test_server",
-			"Rev": "93aaeec320a837a8d6b47ecbb4b4eab957a3e1de"
+			"Rev": "7961fb4a446e96ef5a35fee37aa4b4945dca6745"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/urljoiner",
-			"Rev": "93aaeec320a837a8d6b47ecbb4b4eab957a3e1de"
+			"Rev": "7961fb4a446e96ef5a35fee37aa4b4945dca6745"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/localip",
-			"Rev": "90e9aee1f6ae4ba750c6656c3fb529bf217b4908"
+			"Rev": "b2f1c6577e09b5727076c72f4096e3cc5cfd737d"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/storeadapter",
-			"Rev": "8ddc6b0bf58fdfa4fd90b661b1aba195c5ac9d6b"
+			"Rev": "4ab2c502399a8be4998fb8d76a2cc16654d135ee"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/yagnats",
-			"Rev": "8bf15e48f3abf6db1765ff908ee678a6f347ce0a"
+			"Rev": "196990d547253e2c2d14e188464ccd69b526e35d"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.2.0-rc1-96-g1e26d8e",
-			"Rev": "1e26d8ee84cf9b1000d2af8acfb45b2521f49be5"
+			"Comment": "v0.2.0-rc1-106-g26f4504",
+			"Rev": "26f4504e71d6abefd467eb44a02ff15b933b6eb6"
 		},
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
@@ -49,11 +49,15 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Rev": "1e48048b2e01c7f1830144e30eea21db3cd3b574"
+			"Rev": "51ddbbc2ace9f9ad4cf06ba63442ea2ef2019837"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "e287925a206d2f7cf070e08c082ed93dd38fcecc"
+			"Rev": "31890964f058d62158db8efe8ccd6cb55a5ecd6d"
+		},
+		{
+			"ImportPath": "github.com/tedsuo/ifrit",
+			"Rev": "28e5a1d991b72ee764526ec08f53e757ed214784"
 		}
 	]
 }

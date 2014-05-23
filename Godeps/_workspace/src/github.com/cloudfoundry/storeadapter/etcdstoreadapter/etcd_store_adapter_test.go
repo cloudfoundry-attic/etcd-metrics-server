@@ -5,6 +5,7 @@ import (
 	"time"
 	. "github.com/cloudfoundry/storeadapter"
 	. "github.com/cloudfoundry/storeadapter/etcdstoreadapter"
+	. "github.com/cloudfoundry/storeadapter/storenodematchers"
 	"github.com/cloudfoundry/storeadapter/test_helpers"
 	"github.com/cloudfoundry/storeadapter/workerpool"
 	. "github.com/onsi/ginkgo"
@@ -50,7 +51,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 			It("should return the appropriate store breakfastNode", func() {
 				value, err := adapter.Get("/menu/breakfast")
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(value).Should(Equal(breakfastNode))
+				Ω(value).Should(MatchStoreNode(breakfastNode))
+				Ω(value.Index).ShouldNot(BeZero())
 			})
 		})
 
@@ -95,8 +97,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 			menu, err := adapter.ListRecursively("/menu")
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(menu.ChildNodes).Should(HaveLen(2))
-			Ω(menu.ChildNodes).Should(ContainElement(breakfastNode))
-			Ω(menu.ChildNodes).Should(ContainElement(lunchNode))
+			Ω(menu.ChildNodes).Should(ContainElement(MatchStoreNode(breakfastNode)))
+			Ω(menu.ChildNodes).Should(ContainElement(MatchStoreNode(lunchNode)))
 		})
 
 		Context("Setting to an existing node", func() {
@@ -113,8 +115,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 				menu, err := adapter.ListRecursively("/menu")
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(menu.ChildNodes).Should(HaveLen(2))
-				Ω(menu.ChildNodes).Should(ContainElement(breakfastNode))
-				Ω(menu.ChildNodes).Should(ContainElement(lunchNode))
+				Ω(menu.ChildNodes).Should(ContainElement(MatchStoreNode(breakfastNode)))
+				Ω(menu.ChildNodes).Should(ContainElement(MatchStoreNode(lunchNode)))
 			})
 
 			It("should error when attempting to set to a directory", func() {
@@ -157,8 +159,9 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Ω(value.Key).Should(Equal("/menu"))
 				Ω(value.Dir).Should(BeTrue())
 				Ω(value.ChildNodes).Should(HaveLen(2))
-				Ω(value.ChildNodes).Should(ContainElement(breakfastNode))
-				Ω(value.ChildNodes).Should(ContainElement(lunchNode))
+				Ω(value.ChildNodes[0].Index).ShouldNot(BeZero())
+				Ω(value.ChildNodes).Should(ContainElement(MatchStoreNode(breakfastNode)))
+				Ω(value.ChildNodes).Should(ContainElement(MatchStoreNode(lunchNode)))
 			})
 		})
 
@@ -194,8 +197,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 					Ω(menuNode.Value).Should(BeEmpty())
 					Ω(menuNode.Dir).Should(BeTrue())
 					Ω(menuNode.ChildNodes).Should(HaveLen(3))
-					Ω(menuNode.ChildNodes).Should(ContainElement(breakfastNode))
-					Ω(menuNode.ChildNodes).Should(ContainElement(lunchNode))
+					Ω(menuNode.ChildNodes).Should(ContainElement(MatchStoreNode(breakfastNode)))
+					Ω(menuNode.ChildNodes).Should(ContainElement(MatchStoreNode(lunchNode)))
 
 					var dinnerNode StoreNode
 					for _, node := range menuNode.ChildNodes {
@@ -205,8 +208,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 						}
 					}
 					Ω(dinnerNode.Dir).Should(BeTrue())
-					Ω(dinnerNode.ChildNodes).Should(ContainElement(firstCourseDinnerNode))
-					Ω(dinnerNode.ChildNodes).Should(ContainElement(secondCourseDinnerNode))
+					Ω(dinnerNode.ChildNodes).Should(ContainElement(MatchStoreNode(firstCourseDinnerNode)))
+					Ω(dinnerNode.ChildNodes).Should(ContainElement(MatchStoreNode(secondCourseDinnerNode)))
 				})
 			})
 
@@ -218,8 +221,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 					Ω(menuNode.Value).Should(BeEmpty())
 					Ω(menuNode.Dir).Should(BeTrue())
 					Ω(menuNode.ChildNodes).Should(HaveLen(3))
-					Ω(menuNode.ChildNodes).Should(ContainElement(breakfastNode))
-					Ω(menuNode.ChildNodes).Should(ContainElement(lunchNode))
+					Ω(menuNode.ChildNodes).Should(ContainElement(MatchStoreNode(breakfastNode)))
+					Ω(menuNode.ChildNodes).Should(ContainElement(MatchStoreNode(lunchNode)))
 
 					var dinnerNode StoreNode
 					for _, node := range menuNode.ChildNodes {
@@ -229,8 +232,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 						}
 					}
 					Ω(dinnerNode.Dir).Should(BeTrue())
-					Ω(dinnerNode.ChildNodes).Should(ContainElement(firstCourseDinnerNode))
-					Ω(dinnerNode.ChildNodes).Should(ContainElement(secondCourseDinnerNode))
+					Ω(dinnerNode.ChildNodes).Should(ContainElement(MatchStoreNode(firstCourseDinnerNode)))
+					Ω(dinnerNode.ChildNodes).Should(ContainElement(MatchStoreNode(secondCourseDinnerNode)))
 				})
 			})
 		})
@@ -580,7 +583,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 		It("creates the node at the given key", func() {
 			retrievedNode, err := adapter.Get("/foo")
 			Ω(err).ShouldNot(HaveOccurred())
-			Ω(retrievedNode).Should(Equal(node))
+			Ω(retrievedNode).Should(MatchStoreNode(node))
 		})
 
 		Context("when a node already exists at the key", func() {
@@ -619,7 +622,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 
 			retrievedNode, err := adapter.Get("/foo")
 			Ω(err).ShouldNot(HaveOccurred())
-			Ω(retrievedNode).Should(Equal(node))
+			Ω(retrievedNode).Should(MatchStoreNode(node))
 		})
 
 		Context("when a node does not exist at the key", func() {
@@ -659,7 +662,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 
 			retrievedNode, err := adapter.Get("/foo")
 			Ω(err).ShouldNot(HaveOccurred())
-			Ω(retrievedNode).Should(Equal(newNode))
+			Ω(retrievedNode).Should(MatchStoreNode(newNode))
 		})
 
 		Context("when a node exists but the comparison fails", func() {
@@ -678,7 +681,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 
 				retrievedNode, err := adapter.Get("/foo")
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(retrievedNode).Should(Equal(node))
+				Ω(retrievedNode).Should(MatchStoreNode(node))
 			})
 		})
 
@@ -702,9 +705,71 @@ var _ = Describe("ETCD Store Adapter", func() {
 		})
 	})
 
+	Describe("Comparing as well as swapping by index", func() {
+		var node StoreNode
+
+		BeforeEach(func() {
+			node = StoreNode{Key: "/foo", Value: []byte("some value")}
+		})
+
+		It("updates the existing node at the given key", func() {
+			err := adapter.Create(node)
+			Ω(err).ShouldNot(HaveOccurred())
+
+			newNode := node
+			newNode.Value = []byte("some new value")
+
+			etcd_node, err := adapter.Get("/foo")
+			Ω(err).ShouldNot(HaveOccurred())
+
+			err = adapter.CompareAndSwapByIndex(etcd_node.Index, newNode)
+			Ω(err).ShouldNot(HaveOccurred())
+
+			retrievedNode, err := adapter.Get("/foo")
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(retrievedNode).Should(MatchStoreNode(newNode))
+		})
+
+		Context("when a node exists but the comparison fails", func() {
+			It("returns an error", func() {
+				err := adapter.Create(node)
+				Ω(err).ShouldNot(HaveOccurred())
+
+				newNode := node
+				newNode.Value = []byte("some new value")
+
+				err = adapter.CompareAndSwapByIndex(4271138, newNode)
+				Ω(err).Should(Equal(ErrorKeyComparisonFailed))
+
+				retrievedNode, err := adapter.Get("/foo")
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(retrievedNode).Should(MatchStoreNode(node))
+			})
+		})
+
+		Context("when a node does not exist at the key", func() {
+			It("returns an error", func() {
+				err := adapter.CompareAndSwapByIndex(4271338, node)
+				Ω(err).Should(Equal(ErrorKeyNotFound))
+			})
+		})
+
+		Context("when a directory exists at the given key", func() {
+			It("returns an error", func() {
+				err := adapter.Create(StoreNode{Key: "/dir/foo", Value: []byte("some value")})
+				Ω(err).ShouldNot(HaveOccurred())
+
+				newNode := StoreNode{Key: "/dir", Value: []byte("some value")}
+
+				err = adapter.CompareAndSwapByIndex(4271338, newNode)
+				Ω(err).Should(Equal(ErrorNodeIsDirectory))
+			})
+		})
+	})
+
 	Describe("Watching", func() {
 		Context("when a node under the key is created", func() {
-			It("sends an event with CreateEvent type and the node's value", func(done Done) {
+			It("sends an event with CreateEvent type and the node's value, and no previous node", func(done Done) {
 				events, _, _ := adapter.Watch("/foo")
 
 				err := adapter.Create(StoreNode{
@@ -717,6 +782,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(event.Type).To(Equal(CreateEvent))
 				Expect(event.Node.Key).To(Equal("/foo/a"))
 				Expect(string(event.Node.Value)).To(Equal("new value"))
+				Expect(event.PrevNode).To(BeZero())
 
 				close(done)
 			}, 5.0)
@@ -733,7 +799,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("sends an event with UpdateEvent type and the node's value", func(done Done) {
+			It("sends an event with UpdateEvent type and the node's value, and the previous node", func(done Done) {
 				events, _, _ := adapter.Watch("/foo")
 
 				err := adapter.SetMulti([]StoreNode{
@@ -748,12 +814,14 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(event.Type).To(Equal(UpdateEvent))
 				Expect(event.Node.Key).To(Equal("/foo/a"))
 				Expect(string(event.Node.Value)).To(Equal("new value"))
+				Expect(event.PrevNode.Key).To(Equal("/foo/a"))
+				Expect(string(event.PrevNode.Value)).To(Equal("some value"))
 
 				close(done)
 			}, 5.0)
 		})
 
-		Context("when a node under the key is updated", func() {
+		Context("when a node under the key is updated, and the previous node", func() {
 			BeforeEach(func() {
 				err := adapter.SetMulti([]StoreNode{
 					{
@@ -774,6 +842,8 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(event.Type).To(Equal(UpdateEvent))
 				Expect(event.Node.Key).To(Equal("/foo"))
 				Expect(event.Node.TTL).To(BeNumerically("==", 10))
+				Expect(event.PrevNode.Key).To(Equal("/foo"))
+				Expect(event.PrevNode.TTL).To(BeNumerically("==", 0))
 
 				close(done)
 			}, 5.0)
@@ -790,7 +860,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("sends an event with UpdateEvent type and the node's value", func(done Done) {
+			It("sends an event with UpdateEvent type and the node's value, and the previous node", func(done Done) {
 				events, _, _ := adapter.Watch("/foo")
 
 				newNode := node
@@ -800,7 +870,9 @@ var _ = Describe("ETCD Store Adapter", func() {
 
 				event := <-events
 				Expect(event.Type).To(Equal(UpdateEvent))
-				Expect(event.Node).To(Equal(newNode))
+				Expect(*event.Node).To(MatchStoreNode(newNode))
+				Expect(event.PrevNode.Key).To(Equal("/foo/a"))
+				Expect(string(event.PrevNode.Value)).To(Equal("some value"))
 
 				close(done)
 			}, 5.0)
@@ -817,7 +889,7 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("sends an event with DeleteEvent type and the node's value", func(done Done) {
+			It("sends an event with DeleteEvent type and the previous node", func(done Done) {
 				events, _, _ := adapter.Watch("/foo")
 
 				err := adapter.Delete("/foo/a")
@@ -825,8 +897,9 @@ var _ = Describe("ETCD Store Adapter", func() {
 
 				event := <-events
 				Expect(event.Type).To(Equal(DeleteEvent))
-				Expect(event.Node.Key).To(Equal("/foo/a"))
-				Expect(string(event.Node.Value)).To(Equal("some value"))
+				Expect(event.Node).To(BeNil())
+				Expect(event.PrevNode.Key).To(Equal("/foo/a"))
+				Expect(string(event.PrevNode.Value)).To(Equal("some value"))
 
 				close(done)
 			}, 5.0)
@@ -844,15 +917,16 @@ var _ = Describe("ETCD Store Adapter", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("sends an event with ExpireEvent type and the node's value", func(done Done) {
+			It("sends an event with ExpireEvent type and the previous node", func(done Done) {
 				events, _, _ := adapter.Watch("/foo")
 
 				time.Sleep(2 * time.Second)
 
 				event := <-events
 				Expect(event.Type).To(Equal(ExpireEvent))
-				Expect(event.Node.Key).To(Equal("/foo/a"))
-				Expect(string(event.Node.Value)).To(Equal("some value"))
+				Expect(event.Node).To(BeNil())
+				Expect(event.PrevNode.Key).To(Equal("/foo/a"))
+				Expect(string(event.PrevNode.Value)).To(Equal("some value"))
 
 				close(done)
 			}, 5.0)
