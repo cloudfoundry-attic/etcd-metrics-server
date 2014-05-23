@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/url"
 	"os"
 	"strings"
@@ -75,6 +76,18 @@ var natsPassword = flag.String(
 	"Password for nats user",
 )
 
+var logLevel = flag.String(
+	"logLevel",
+	"info",
+	"the logging level (none, fatal, error, warn, info, debug, debug1, debug2, all)",
+)
+
+var syslogName = flag.String(
+	"syslogName",
+	"",
+	"syslog name",
+)
+
 func main() {
 	flag.Parse()
 
@@ -91,6 +104,21 @@ func main() {
 }
 
 func initializeLogger() *steno.Logger {
+	l, err := steno.GetLogLevel(*logLevel)
+	if err != nil {
+		log.Fatalf("Invalid loglevel: %s\n", *logLevel)
+	}
+
+	stenoConfig := steno.Config{
+		Level: l,
+		Sinks: []steno.Sink{steno.NewIOSink(os.Stdout)},
+	}
+
+	if *syslogName != "" {
+		stenoConfig.Sinks = append(stenoConfig.Sinks, steno.NewSyslogSink(*syslogName))
+	}
+
+	steno.Init(&stenoConfig)
 	return steno.NewLogger("etcd-metrics-server")
 }
 
