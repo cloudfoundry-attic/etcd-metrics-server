@@ -2,12 +2,14 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/url"
+	"os"
 	"strings"
 
 	steno "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/yagnats"
+	"github.com/tedsuo/ifrit"
+	"github.com/tedsuo/ifrit/sigmon"
 
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
@@ -74,14 +76,43 @@ var natsPassword = flag.String(
 )
 
 func main() {
-	var err error
-
 	flag.Parse()
 
+	logger := initializeLogger()
+	natsClient := initializeNatsClient(logger)
+	server := ifrit.Envoke(initializeServer(logger, natsClient))
+
+	monitorProcess := ifrit.Envoke(sigmon.New(server))
+
+	err := <-monitorProcess.Wait()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func initializeLogger() *steno.Logger {
+	return steno.NewLogger("etcd-metrics-server")
+}
+
+func initializeServer(logger *steno.Logger, natsClient yagnats.NATSClient) *metrics_server.MetricsServer {
+	registrar := collector_registrar.New(natsClient)
+	return metrics_server.New(registrar, logger, metrics_server.Config{
+		JobName: *jobName,
+		EtcdURL: &url.URL{
+			Scheme: *etcdScheme,
+			Host:   *etcdAddress,
+		},
+		Port:     *port,
+		Username: *username,
+		Password: *password,
+		Index:    *index,
+	})
+}
+
+func initializeNatsClient(logger *steno.Logger) yagnats.NATSClient {
 	natsClient := yagnats.NewClient()
 
 	natsMembers := []yagnats.ConnectionProvider{}
-
 	for _, addr := range strings.Split(*natsAddresses, ",") {
 		natsMembers = append(
 			natsMembers,
@@ -89,33 +120,13 @@ func main() {
 		)
 	}
 
-	err = natsClient.Connect(&yagnats.ConnectionCluster{
+	err := natsClient.Connect(&yagnats.ConnectionCluster{
 		Members: natsMembers,
 	})
 
 	if err != nil {
-		log.Fatalf("Error connecting to NATS: %s\n", err)
+		logger.Fatalf("Error connecting to NATS: %s\n", err)
 	}
 
-	registrar := collector_registrar.New(natsClient)
-
-	etcdURL := &url.URL{
-		Scheme: *etcdScheme,
-		Host:   *etcdAddress,
-	}
-
-	config := metrics_server.Config{
-		JobName:  *jobName,
-		EtcdURL:  etcdURL,
-		Port:     *port,
-		Username: *username,
-		Password: *password,
-		Index:    *index,
-	}
-
-	server := metrics_server.New(registrar, steno.NewLogger("etcd-metrics-server"), config)
-
-	server.Start()
-
-	select {}
+	return natsClient
 }
