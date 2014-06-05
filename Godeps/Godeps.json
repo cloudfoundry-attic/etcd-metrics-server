@@ -7,7 +7,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/metricz",
-			"Rev": "d9bdb1b78384f05faa694175782055d5ba3966b5"
+			"Rev": "b7d9844518d761d1591a3e341b139d748a2aeada"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gosteno",
@@ -16,15 +16,15 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/natsrunner",
-			"Rev": "7961fb4a446e96ef5a35fee37aa4b4945dca6745"
+			"Rev": "f81faeae3c1e229f1e3f0ad9d0dab98ba8daa242"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/test_server",
-			"Rev": "7961fb4a446e96ef5a35fee37aa4b4945dca6745"
+			"Rev": "f81faeae3c1e229f1e3f0ad9d0dab98ba8daa242"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gunk/urljoiner",
-			"Rev": "7961fb4a446e96ef5a35fee37aa4b4945dca6745"
+			"Rev": "f81faeae3c1e229f1e3f0ad9d0dab98ba8daa242"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/loggregatorlib/cfcomponent/localip",
@@ -32,7 +32,7 @@
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/storeadapter",
-			"Rev": "4ab2c502399a8be4998fb8d76a2cc16654d135ee"
+			"Rev": "8d010407d220f029000b4f21687dd9e3b3b8b190"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/yagnats",
@@ -40,8 +40,8 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/go-etcd/etcd",
-			"Comment": "v0.2.0-rc1-106-g26f4504",
-			"Rev": "26f4504e71d6abefd467eb44a02ff15b933b6eb6"
+			"Comment": "v0.2.0-rc1-114-g7745cfd",
+			"Rev": "7745cfd7f8e619cc9e6be450238e6253a57a227f"
 		},
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
@@ -49,15 +49,16 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
-			"Rev": "51ddbbc2ace9f9ad4cf06ba63442ea2ef2019837"
+			"Comment": "v1.0.0-12-g8c58607",
+			"Rev": "8c586078cd1019084c081e889d007fba9c6f4198"
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega",
-			"Rev": "31890964f058d62158db8efe8ccd6cb55a5ecd6d"
+			"Rev": "bdbf788226cb7e227917ca92805c204112f30e19"
 		},
 		{
 			"ImportPath": "github.com/tedsuo/ifrit",
-			"Rev": "28e5a1d991b72ee764526ec08f53e757ed214784"
+			"Rev": "258629c650db33cf95a642651d051ded4ccb2e05"
 		}
 	]
 }

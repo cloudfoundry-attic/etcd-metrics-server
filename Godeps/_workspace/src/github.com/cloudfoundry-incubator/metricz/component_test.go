@@ -17,9 +17,13 @@ import (
 )
 
 var _ = Describe("Component", func() {
+	var uniquePortForTest uint
+	BeforeEach(func() {
+		uniquePortForTest = uint(CurrentGinkgoTestDescription().LineNumber + 10000)
+	})
 	It("component URL", func() {
 
-		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", 0, GoodHealthMonitor{}, 0, nil, nil)
+		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, nil, nil)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		url := component.URL()
@@ -36,7 +40,7 @@ var _ = Describe("Component", func() {
 	})
 	It("status credentials nil", func() {
 
-		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", 0, GoodHealthMonitor{}, 0, nil, nil)
+		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, nil, nil)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		url := component.URL()
@@ -48,7 +52,7 @@ var _ = Describe("Component", func() {
 	})
 	It("status credentials default", func() {
 
-		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", 0, GoodHealthMonitor{}, 0, []string{"", ""}, nil)
+		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, []string{"", ""}, nil)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		url := component.URL()
@@ -59,13 +63,12 @@ var _ = Describe("Component", func() {
 		Ω(passwordPresent).Should(BeTrue())
 	})
 	It("good healthz endpoint", func() {
-
 		component, err := NewComponent(
 			loggertesthelper.Logger(),
 			"loggregator",
-			0,
+			uniquePortForTest,
 			GoodHealthMonitor{},
-			7877,
+			0,
 			[]string{"user", "pass"},
 			[]instrumentation.Instrumentable{},
 		)
@@ -88,9 +91,9 @@ var _ = Describe("Component", func() {
 		component, err := NewComponent(
 			loggertesthelper.Logger(),
 			"loggregator",
-			0,
+			uniquePortForTest,
 			BadHealthMonitor{},
-			9878,
+			0,
 			[]string{"user", "pass"},
 			[]instrumentation.Instrumentable{},
 		)
@@ -112,9 +115,9 @@ var _ = Describe("Component", func() {
 		component, err := NewComponent(
 			loggertesthelper.Logger(),
 			"loggregator",
-			0,
+			uniquePortForTest,
 			GoodHealthMonitor{},
-			7879,
+			0,
 			[]string{"user", "pass"},
 			[]instrumentation.Instrumentable{},
 		)
@@ -123,12 +126,14 @@ var _ = Describe("Component", func() {
 		finishChan := make(chan bool)
 
 		go func() {
+			defer GinkgoRecover()
 			err := component.StartMonitoringEndpoints()
 			Ω(err).ShouldNot(HaveOccurred())
 		}()
 		time.Sleep(50 * time.Millisecond)
 
 		go func() {
+			defer GinkgoRecover()
 
 			err := component.StartMonitoringEndpoints()
 			Ω(err).Should(HaveOccurred())
@@ -142,15 +147,16 @@ var _ = Describe("Component", func() {
 		component, err := NewComponent(
 			loggertesthelper.Logger(),
 			"loggregator",
-			0,
+			uniquePortForTest,
 			GoodHealthMonitor{},
-			7885,
+			0,
 			[]string{"user", "pass"},
 			[]instrumentation.Instrumentable{},
 		)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		go func() {
+			defer GinkgoRecover()
 			err := component.StartMonitoringEndpoints()
 			Ω(err).ShouldNot(HaveOccurred())
 		}()
@@ -160,6 +166,7 @@ var _ = Describe("Component", func() {
 		component.StopMonitoringEndpoints()
 
 		go func() {
+			defer GinkgoRecover()
 			err := component.StartMonitoringEndpoints()
 			Ω(err).ShouldNot(HaveOccurred())
 		}()
@@ -170,9 +177,9 @@ var _ = Describe("Component", func() {
 		component, err := NewComponent(
 			loggertesthelper.Logger(),
 			"loggregator",
-			0,
+			uniquePortForTest,
 			GoodHealthMonitor{},
-			1234,
+			0,
 			[]string{"user", "pass"},
 			[]instrumentation.Instrumentable{
 				testInstrumentable{
@@ -210,9 +217,9 @@ var _ = Describe("Component", func() {
 		component, err := NewComponent(
 			loggertesthelper.Logger(),
 			"loggregator",
-			0,
+			uniquePortForTest,
 			GoodHealthMonitor{},
-			1234,
+			0,
 			[]string{"user", "pass"},
 			[]instrumentation.Instrumentable{
 				testInstrumentable{

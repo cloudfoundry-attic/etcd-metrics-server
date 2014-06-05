@@ -81,7 +81,7 @@ var _ = Describe("CollectorRegistrar", func() {
 		disaster := errors.New("oh no!")
 
 		BeforeEach(func() {
-			fakenats.WhenPublishing(AnnounceComponentMessageSubject, func() error {
+			fakenats.WhenPublishing(AnnounceComponentMessageSubject, func(*yagnats.Message) error {
 				return disaster
 			})
 		})
@@ -96,7 +96,7 @@ var _ = Describe("CollectorRegistrar", func() {
 		disaster := errors.New("oh no!")
 
 		BeforeEach(func() {
-			fakenats.WhenSubscribing(DiscoverComponentMessageSubject, func() error {
+			fakenats.WhenSubscribing(DiscoverComponentMessageSubject, func(yagnats.Callback) error {
 				return disaster
 			})
 		})
