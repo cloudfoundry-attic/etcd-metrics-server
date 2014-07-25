@@ -6,19 +6,19 @@ import (
 	"net/http"
 
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
-	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/urljoiner"
+	"github.com/pivotal-golang/lager"
 )
 
 type Leader struct {
 	statsEndpoint string
 
-	logger *gosteno.Logger
+	logger lager.Logger
 }
 
 var ErrRedirected = errors.New("redirected to leader")
 
-func NewLeader(etcdAddr string, logger *gosteno.Logger) *Leader {
+func NewLeader(etcdAddr string, logger lager.Logger) *Leader {
 	return &Leader{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "leader"),
 
@@ -42,13 +42,7 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	resp, err := client.Get(leader.statsEndpoint)
 	if err != nil {
-		leader.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"leader.stat-collecting.failed",
-		)
-
+		leader.logger.Error("failed-to-collect-stats", err)
 		return context
 	}
 
@@ -56,13 +50,7 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	err = json.NewDecoder(resp.Body).Decode(&stats)
 	if err != nil {
-		leader.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"leader.stats.malformed",
-		)
-
+		leader.logger.Error("failed-to-unmarshal-stats", err)
 		return context
 	}
 

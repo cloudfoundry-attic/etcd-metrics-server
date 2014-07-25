@@ -4,17 +4,17 @@ import (
 	"net"
 	"time"
 
-	"github.com/cloudfoundry/gosteno"
+	"github.com/pivotal-golang/lager"
 )
 
 type HealthCheck struct {
 	network string
 	addr    string
 
-	logger *gosteno.Logger
+	logger lager.Logger
 }
 
-func New(network, addr string, logger *gosteno.Logger) *HealthCheck {
+func New(network, addr string, logger lager.Logger) *HealthCheck {
 	return &HealthCheck{
 		network: network,
 		addr:    addr,
@@ -26,13 +26,7 @@ func New(network, addr string, logger *gosteno.Logger) *HealthCheck {
 func (check *HealthCheck) Ok() bool {
 	conn, err := net.DialTimeout(check.network, check.addr, time.Second)
 	if err != nil {
-		check.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"health-check.failed",
-		)
-
+		check.logger.Error("health-check-failed", err)
 		return false
 	}
 

@@ -5,8 +5,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager/lagertest"
 
-	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/test_server"
 	"github.com/cloudfoundry/gunk/urljoiner"
 
@@ -22,7 +22,8 @@ var _ = Describe("Leader Instrumentation", func() {
 
 	BeforeEach(func() {
 		s = test_server.New()
-		leader = NewLeader(s.URL(), gosteno.NewLogger("leader-test"))
+
+		leader = NewLeader(s.URL(), lagertest.NewTestLogger("test"))
 	})
 
 	Context("when the metrics fetch succesfully", func() {

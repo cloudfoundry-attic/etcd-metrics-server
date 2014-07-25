@@ -2,10 +2,11 @@ package health_check_test
 
 import (
 	"net"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager/lagertest"
 
-	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/test_server"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
@@ -24,7 +25,7 @@ var _ = Describe("HealthCheck", func() {
 			check = New(
 				server.HTTPTestServer.Listener.Addr().Network(),
 				server.HTTPTestServer.Listener.Addr().String(),
-				gosteno.NewLogger("health-check-test"),
+				lagertest.NewTestLogger("test"),
 			)
 		})
 
@@ -45,7 +46,7 @@ var _ = Describe("HealthCheck", func() {
 			err = listener.Close()
 			Ω(err).ShouldNot(HaveOccurred())
 
-			check = New("tcp", listener.Addr().String(), gosteno.NewLogger("health-check-test"))
+			check = New("tcp", listener.Addr().String(), lagertest.NewTestLogger("test"))
 		})
 
 		It("returns false", func() {

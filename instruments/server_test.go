@@ -3,8 +3,8 @@ package instruments_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager/lagertest"
 
-	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/test_server"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
@@ -19,7 +19,7 @@ var _ = Describe("Server Instrumentation", func() {
 
 	BeforeEach(func() {
 		s = test_server.New()
-		server = NewServer(s.URL(), gosteno.NewLogger("server-test"))
+		server = NewServer(s.URL(), lagertest.NewTestLogger("test"))
 	})
 
 	Context("when the metrics fetch succesfully", func() {

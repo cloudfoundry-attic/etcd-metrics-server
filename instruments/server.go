@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
-	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/urljoiner"
+	"github.com/pivotal-golang/lager"
 )
 
 type Server struct {
 	statsEndpoint string
 
-	logger *gosteno.Logger
+	logger lager.Logger
 }
 
-func NewServer(etcdAddr string, logger *gosteno.Logger) *Server {
+func NewServer(etcdAddr string, logger lager.Logger) *Server {
 	return &Server{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "self"),
 
@@ -32,13 +32,7 @@ func (server *Server) Emit() instrumentation.Context {
 
 	resp, err := http.Get(server.statsEndpoint)
 	if err != nil {
-		server.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"server.stat-collecting.failed",
-		)
-
+		server.logger.Error("failed-to-collect-stats", err)
 		return context
 	}
 
@@ -46,13 +40,7 @@ func (server *Server) Emit() instrumentation.Context {
 
 	err = json.NewDecoder(resp.Body).Decode(&stats)
 	if err != nil {
-		server.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"server.stats.malformed",
-		)
-
+		server.logger.Error("failed-to-unmarshal-stats", err)
 		return context
 	}
 

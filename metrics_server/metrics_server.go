@@ -7,8 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
 	"github.com/cloudfoundry-incubator/metricz"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
-
-	"github.com/cloudfoundry/gosteno"
+	"github.com/pivotal-golang/lager"
 
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
@@ -16,7 +15,7 @@ import (
 
 type MetricsServer struct {
 	registrar collector_registrar.CollectorRegistrar
-	logger    *gosteno.Logger
+	logger    lager.Logger
 	config    Config
 }
 
@@ -32,7 +31,7 @@ type Config struct {
 	Password string
 }
 
-func New(registrar collector_registrar.CollectorRegistrar, logger *gosteno.Logger, config Config) *MetricsServer {
+func New(registrar collector_registrar.CollectorRegistrar, logger lager.Logger, config Config) *MetricsServer {
 	return &MetricsServer{
 		registrar: registrar,
 		logger:    logger,

@@ -7,18 +7,18 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
-	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/gunk/urljoiner"
+	"github.com/pivotal-golang/lager"
 )
 
 type Store struct {
 	statsEndpoint string
 	keysEndpoint  string
 
-	logger *gosteno.Logger
+	logger lager.Logger
 }
 
-func NewStore(etcdAddr string, logger *gosteno.Logger) *Store {
+func NewStore(etcdAddr string, logger lager.Logger) *Store {
 	return &Store{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "store"),
 		keysEndpoint:  urljoiner.Join(etcdAddr, "v2", "keys", "/"),
@@ -36,13 +36,7 @@ func (store *Store) Emit() instrumentation.Context {
 
 	statsResp, err := http.Get(store.statsEndpoint)
 	if err != nil {
-		store.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"store.stat-collecting.failed",
-		)
-
+		store.logger.Error("failed-to-collect-stats", err)
 		return context
 	}
 
@@ -50,25 +44,13 @@ func (store *Store) Emit() instrumentation.Context {
 
 	err = json.NewDecoder(statsResp.Body).Decode(&stats)
 	if err != nil {
-		store.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"store.stats.malformed",
-		)
-
+		store.logger.Error("failed-to-unmarshal-stats", err)
 		return context
 	}
 
 	keysResp, err := http.Get(store.keysEndpoint)
 	if err != nil {
-		store.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"store.read.failed",
-		)
-
+		store.logger.Error("failed-to-read-from-store", err)
 		return context
 	}
 
@@ -80,37 +62,25 @@ func (store *Store) Emit() instrumentation.Context {
 
 	etcdIndex, err := strconv.ParseUint(etcdIndexHeader, 10, 0)
 	if err != nil {
-		store.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"store.etcd-index.malformed",
-		)
-
+		store.logger.Error("failed-to-parse-etcd-index", err, lager.Data{
+			"index": etcdIndexHeader,
+		})
 		return context
 	}
 
 	raftIndex, err := strconv.ParseUint(raftIndexHeader, 10, 0)
 	if err != nil {
-		store.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"store.raft-index.malformed",
-		)
-
+		store.logger.Error("failed-to-parse-raft-index", err, lager.Data{
+			"index": raftIndexHeader,
+		})
 		return context
 	}
 
 	raftTerm, err := strconv.ParseUint(raftTermHeader, 10, 0)
 	if err != nil {
-		store.logger.Errord(
-			map[string]interface{}{
-				"error": err.Error(),
-			},
-			"store.raft-term.malformed",
-		)
-
+		store.logger.Error("failed-to-parse-raft-term", err, lager.Data{
+			"term": raftTermHeader,
+		})
 		return context
 	}
 

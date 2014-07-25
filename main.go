@@ -2,16 +2,16 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/url"
 	"os"
 	"strings"
 
-	steno "github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/yagnats"
+	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/sigmon"
 
+	"github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 )
@@ -76,22 +76,10 @@ var natsPassword = flag.String(
 	"Password for nats user",
 )
 
-var logLevel = flag.String(
-	"logLevel",
-	"info",
-	"the logging level (none, fatal, error, warn, info, debug, debug1, debug2, all)",
-)
-
-var syslogName = flag.String(
-	"syslogName",
-	"",
-	"syslog name",
-)
-
 func main() {
 	flag.Parse()
 
-	logger := initializeLogger()
+	logger := cf_lager.New("etcd-metrics-server")
 	natsClient := initializeNatsClient(logger)
 	server := ifrit.Envoke(initializeServer(logger, natsClient))
 
@@ -103,26 +91,7 @@ func main() {
 	}
 }
 
-func initializeLogger() *steno.Logger {
-	l, err := steno.GetLogLevel(*logLevel)
-	if err != nil {
-		log.Fatalf("Invalid loglevel: %s\n", *logLevel)
-	}
-
-	stenoConfig := steno.Config{
-		Level: l,
-		Sinks: []steno.Sink{steno.NewIOSink(os.Stdout)},
-	}
-
-	if *syslogName != "" {
-		stenoConfig.Sinks = append(stenoConfig.Sinks, steno.NewSyslogSink(*syslogName))
-	}
-
-	steno.Init(&stenoConfig)
-	return steno.NewLogger("etcd-metrics-server")
-}
-
-func initializeServer(logger *steno.Logger, natsClient yagnats.NATSClient) *metrics_server.MetricsServer {
+func initializeServer(logger lager.Logger, natsClient yagnats.NATSClient) *metrics_server.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
 	return metrics_server.New(registrar, logger, metrics_server.Config{
 		JobName: *jobName,
@@ -137,23 +106,26 @@ func initializeServer(logger *steno.Logger, natsClient yagnats.NATSClient) *metr
 	})
 }
 
-func initializeNatsClient(logger *steno.Logger) yagnats.NATSClient {
+func initializeNatsClient(logger lager.Logger) yagnats.NATSClient {
 	natsClient := yagnats.NewClient()
 
 	natsMembers := []yagnats.ConnectionProvider{}
 	for _, addr := range strings.Split(*natsAddresses, ",") {
 		natsMembers = append(
 			natsMembers,
-			&yagnats.ConnectionInfo{addr, *natsUsername, *natsPassword},
+			&yagnats.ConnectionInfo{
+				Addr:     addr,
+				Username: *natsUsername,
+				Password: *natsPassword,
+			},
 		)
 	}
 
 	err := natsClient.Connect(&yagnats.ConnectionCluster{
 		Members: natsMembers,
 	})
-
 	if err != nil {
-		logger.Fatalf("Error connecting to NATS: %s\n", err)
+		logger.Fatal("failed-to-connect-to-nats", err)
 	}
 
 	return natsClient
