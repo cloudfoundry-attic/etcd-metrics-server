@@ -11,9 +11,9 @@ import (
 
 	. "github.com/cloudfoundry-incubator/metricz"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
-	"github.com/cloudfoundry/loggregatorlib/loggertesthelper"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager"
 )
 
 var _ = Describe("Component", func() {
@@ -24,7 +24,7 @@ var _ = Describe("Component", func() {
 	})
 
 	It("component URL", func() {
-		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, nil, nil)
+		component, err := NewComponent(lager.NewLogger("test-component"), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, nil, nil)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		url := component.URL()
@@ -41,7 +41,7 @@ var _ = Describe("Component", func() {
 	})
 
 	It("status credentials nil", func() {
-		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, nil, nil)
+		component, err := NewComponent(lager.NewLogger("test-component"), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, nil, nil)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		url := component.URL()
@@ -53,7 +53,7 @@ var _ = Describe("Component", func() {
 	})
 
 	It("status credentials default", func() {
-		component, err := NewComponent(loggertesthelper.Logger(), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, []string{"", ""}, nil)
+		component, err := NewComponent(lager.NewLogger("test-component"), "loggregator", uniquePortForTest, GoodHealthMonitor{}, 0, []string{"", ""}, nil)
 		Ω(err).ShouldNot(HaveOccurred())
 
 		url := component.URL()
@@ -66,7 +66,7 @@ var _ = Describe("Component", func() {
 
 	It("good healthz endpoint", func() {
 		component, err := NewComponent(
-			loggertesthelper.Logger(),
+			lager.NewLogger("test-component"),
 			"loggregator",
 			uniquePortForTest,
 			GoodHealthMonitor{},
@@ -93,7 +93,7 @@ var _ = Describe("Component", func() {
 
 	It("bad healthz endpoint", func() {
 		component, err := NewComponent(
-			loggertesthelper.Logger(),
+			lager.NewLogger("test-component"),
 			"loggregator",
 			uniquePortForTest,
 			BadHealthMonitor{},
@@ -118,7 +118,7 @@ var _ = Describe("Component", func() {
 
 	It("panic when failing to monitor endpoints", func() {
 		component, err := NewComponent(
-			loggertesthelper.Logger(),
+			lager.NewLogger("test-component"),
 			"loggregator",
 			uniquePortForTest,
 			GoodHealthMonitor{},
@@ -150,7 +150,7 @@ var _ = Describe("Component", func() {
 
 	It("stopping server", func() {
 		component, err := NewComponent(
-			loggertesthelper.Logger(),
+			lager.NewLogger("test-component"),
 			"loggregator",
 			uniquePortForTest,
 			GoodHealthMonitor{},
@@ -180,7 +180,7 @@ var _ = Describe("Component", func() {
 	It("varz requires basic auth", func() {
 		tags := map[string]interface{}{"tagName1": "tagValue1", "tagName2": "tagValue2"}
 		component, err := NewComponent(
-			loggertesthelper.Logger(),
+			lager.NewLogger("test-component"),
 			"loggregator",
 			uniquePortForTest,
 			GoodHealthMonitor{},
@@ -220,7 +220,7 @@ var _ = Describe("Component", func() {
 	It("varz endpoint", func() {
 		tags := map[string]interface{}{"tagName1": "tagValue1", "tagName2": "tagValue2"}
 		component, err := NewComponent(
-			loggertesthelper.Logger(),
+			lager.NewLogger("test-component"),
 			"loggregator",
 			uniquePortForTest,
 			GoodHealthMonitor{},

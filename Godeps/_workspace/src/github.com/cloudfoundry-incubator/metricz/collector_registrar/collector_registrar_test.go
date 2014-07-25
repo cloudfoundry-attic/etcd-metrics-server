@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry/yagnats/fakeyagnats"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-golang/lager"
 
 	"github.com/cloudfoundry-incubator/metricz"
 	. "github.com/cloudfoundry-incubator/metricz/collector_registrar"
@@ -24,7 +25,7 @@ var _ = Describe("CollectorRegistrar", func() {
 
 		var err error
 		component, err = metricz.NewComponent(
-			nil,
+			lager.NewLogger("test-component"),
 			"Some Component",
 			1,
 			nil,

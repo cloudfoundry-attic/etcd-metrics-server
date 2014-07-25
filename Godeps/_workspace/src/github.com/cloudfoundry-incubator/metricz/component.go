@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry-incubator/metricz/auth"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 	"github.com/cloudfoundry-incubator/metricz/localip"
-	"github.com/cloudfoundry/gosteno"
+	"github.com/pivotal-golang/lager"
 )
 
 type Component struct {
@@ -25,7 +25,7 @@ type Component struct {
 	statusCredentials []string
 	instrumentables   []instrumentation.Instrumentable
 
-	logger *gosteno.Logger
+	logger lager.Logger
 
 	listener  net.Listener
 	quitChan  chan bool
@@ -38,7 +38,7 @@ const (
 )
 
 func NewComponent(
-	logger *gosteno.Logger,
+	logger lager.Logger,
 	name string,
 	index uint,
 	heathMonitor HealthMonitor,
@@ -70,6 +70,8 @@ func NewComponent(
 		statusCreds = []string{user, pass}
 	}
 
+	componentLogger := logger.Session("component")
+
 	return Component{
 		name:              name,
 		ipAddress:         ip,
@@ -79,7 +81,7 @@ func NewComponent(
 		statusCredentials: statusCreds,
 		instrumentables:   instrumentables,
 
-		logger: logger,
+		logger: componentLogger,
 
 		quitChan:  make(chan bool, 1),
 		startChan: make(chan bool, 1),
@@ -92,16 +94,13 @@ func (c *Component) StartMonitoringEndpoints() error {
 	mux.HandleFunc("/healthz", healthzHandlerFor(c))
 	mux.HandleFunc("/varz", auth.Wrap(varzHandlerFor(c)))
 
-	c.logger.Debugd(
-		map[string]interface{}{
-			"uuid":     c.uuid,
-			"ip":       c.ipAddress,
-			"port":     c.statusPort,
-			"username": c.statusCredentials[username],
-			"password": c.statusCredentials[password],
-		},
-		"component.varz.start",
-	)
+	c.logger.Debug("start", lager.Data{
+		"uuid":     c.uuid,
+		"ip":       c.ipAddress,
+		"port":     c.statusPort,
+		"username": c.statusCredentials[username],
+		"password": c.statusCredentials[password],
+	})
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", c.ipAddress, c.statusPort))
 	if err != nil {
