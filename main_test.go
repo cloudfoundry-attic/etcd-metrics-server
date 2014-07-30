@@ -61,8 +61,15 @@ var _ = Describe("Main", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 
 		<-receivedAnnounce
-		_, err = net.Dial("tcp", reg.Host)
-		Ω(err).ShouldNot(HaveOccurred())
+
+		Eventually(func() error {
+			conn, err := net.Dial("tcp", reg.Host)
+			if err == nil {
+				conn.Close()
+			}
+
+			return err
+		}, 5).ShouldNot(HaveOccurred())
 
 		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/varz", reg.Host), nil)
 		Ω(err).ShouldNot(HaveOccurred())
