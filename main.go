@@ -11,6 +11,7 @@ import (
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/sigmon"
 
+	"github.com/cloudfoundry-incubator/cf-debug-server"
 	"github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
@@ -81,6 +82,9 @@ func main() {
 
 	logger := cf_lager.New("etcd-metrics-server")
 	natsClient := initializeNatsClient(logger)
+
+	cf_debug_server.Run()
+
 	server := ifrit.Envoke(initializeServer(logger, natsClient))
 
 	monitorProcess := ifrit.Envoke(sigmon.New(server))
