@@ -85,7 +85,7 @@ func main() {
 
 	cf_debug_server.Run()
 
-	server := ifrit.Envoke(initializeServer(logger, natsClient))
+	server := initializeServer(logger, natsClient)
 
 	monitorProcess := ifrit.Envoke(sigmon.New(server))
 
