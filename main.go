@@ -95,7 +95,7 @@ func main() {
 	}
 }
 
-func initializeServer(logger lager.Logger, natsClient yagnats.NATSClient) *metrics_server.MetricsServer {
+func initializeServer(logger lager.Logger, natsClient yagnats.ApceraWrapperNATSClient) *metrics_server.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
 	return metrics_server.New(registrar, logger, metrics_server.Config{
 		JobName: *jobName,
@@ -110,24 +110,20 @@ func initializeServer(logger lager.Logger, natsClient yagnats.NATSClient) *metri
 	})
 }
 
-func initializeNatsClient(logger lager.Logger) yagnats.NATSClient {
-	natsClient := yagnats.NewClient()
+func initializeNatsClient(logger lager.Logger) yagnats.ApceraWrapperNATSClient {
 
-	natsMembers := []yagnats.ConnectionProvider{}
+	natsMembers := []string{}
 	for _, addr := range strings.Split(*natsAddresses, ",") {
-		natsMembers = append(
-			natsMembers,
-			&yagnats.ConnectionInfo{
-				Addr:     addr,
-				Username: *natsUsername,
-				Password: *natsPassword,
-			},
-		)
+		uri := url.URL{
+			Scheme: "nats",
+			User:   url.UserPassword(*natsUsername, *natsPassword),
+			Host:   addr,
+		}
+		natsMembers = append(natsMembers, uri.String())
 	}
+	natsClient := yagnats.NewApceraClientWrapper(natsMembers)
 
-	err := natsClient.Connect(&yagnats.ConnectionCluster{
-		Members: natsMembers,
-	})
+	err := natsClient.Connect()
 	if err != nil {
 		logger.Fatal("failed-to-connect-to-nats", err)
 	}
