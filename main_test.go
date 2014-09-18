@@ -9,28 +9,28 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/apcera/nats"
 	"github.com/cloudfoundry/gunk/natsrunner"
 	"github.com/cloudfoundry/storeadapter/storerunner/etcdstorerunner"
-	"github.com/cloudfoundry/yagnats"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Main", func() {
-	var nats *natsrunner.NATSRunner
+	var natsRunner *natsrunner.NATSRunner
 	var etcdRunner *etcdstorerunner.ETCDClusterRunner
 	var session *gexec.Session
 
 	BeforeEach(func() {
-		nats = natsrunner.NewNATSRunner(4222)
-		nats.Start()
+		natsRunner = natsrunner.NewNATSRunner(4222)
+		natsRunner.Start()
 		etcdRunner = etcdstorerunner.NewETCDClusterRunner(5001, 1)
 		etcdRunner.Start()
 	})
 
 	AfterEach(func() {
-		nats.Stop()
+		natsRunner.Stop()
 		etcdRunner.Stop()
 		session.Kill().Wait()
 	})
@@ -44,8 +44,8 @@ var _ = Describe("Main", func() {
 		var reg = new(registration)
 
 		receivedAnnounce := make(chan bool)
-		nats.MessageBus.Subscribe("vcap.component.announce", func(message *yagnats.Message) {
-			err := json.Unmarshal(message.Payload, reg)
+		natsRunner.MessageBus.Subscribe("vcap.component.announce", func(message *nats.Msg) {
+			err := json.Unmarshal(message.Data, reg)
 			receivedAnnounce <- true
 			Ω(err).ShouldNot(HaveOccurred())
 		})
