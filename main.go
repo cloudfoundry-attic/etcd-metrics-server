@@ -95,7 +95,7 @@ func main() {
 	}
 }
 
-func initializeServer(logger lager.Logger, natsClient yagnats.ApceraWrapperNATSClient) *metrics_server.MetricsServer {
+func initializeServer(logger lager.Logger, natsClient yagnats.NATSConn) *metrics_server.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
 	return metrics_server.New(registrar, logger, metrics_server.Config{
 		JobName: *jobName,
@@ -110,7 +110,7 @@ func initializeServer(logger lager.Logger, natsClient yagnats.ApceraWrapperNATSC
 	})
 }
 
-func initializeNatsClient(logger lager.Logger) yagnats.ApceraWrapperNATSClient {
+func initializeNatsClient(logger lager.Logger) yagnats.NATSConn {
 
 	natsMembers := []string{}
 	for _, addr := range strings.Split(*natsAddresses, ",") {
@@ -121,9 +121,7 @@ func initializeNatsClient(logger lager.Logger) yagnats.ApceraWrapperNATSClient {
 		}
 		natsMembers = append(natsMembers, uri.String())
 	}
-	natsClient := yagnats.NewApceraClientWrapper(natsMembers)
-
-	err := natsClient.Connect()
+	natsClient, err := yagnats.Connect(natsMembers)
 	if err != nil {
 		logger.Fatal("failed-to-connect-to-nats", err)
 	}
