@@ -12,7 +12,7 @@ var metricsServerPath string
 
 func TestEtcdMetricsServer(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Etcd-Metrics-Server Suite")
+	RunSpecs(t, "Etcd Metrics Server Suite")
 }
 
 var _ = BeforeSuite(func() {

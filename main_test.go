@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Main", func() {
+var _ = Describe("Etcd Metrics Server", func() {
 	var natsRunner *natsrunner.NATSRunner
 	var etcdRunner *etcdstorerunner.ETCDClusterRunner
 	var session *gexec.Session
