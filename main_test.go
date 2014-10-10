@@ -10,7 +10,7 @@ import (
 	"os/exec"
 
 	"github.com/apcera/nats"
-	"github.com/cloudfoundry/gunk/natsrunner"
+	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/cloudfoundry/storeadapter/storerunner/etcdstorerunner"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,12 +18,12 @@ import (
 )
 
 var _ = Describe("Etcd Metrics Server", func() {
-	var natsRunner *natsrunner.NATSRunner
+	var natsRunner *diegonats.NATSRunner
 	var etcdRunner *etcdstorerunner.ETCDClusterRunner
 	var session *gexec.Session
 
 	BeforeEach(func() {
-		natsRunner = natsrunner.NewNATSRunner(4222)
+		natsRunner = diegonats.NewRunner(4222)
 		natsRunner.Start()
 		etcdRunner = etcdstorerunner.NewETCDClusterRunner(5001, 1)
 		etcdRunner.Start()
@@ -44,7 +44,7 @@ var _ = Describe("Etcd Metrics Server", func() {
 		var reg = new(registration)
 
 		receivedAnnounce := make(chan bool)
-		natsRunner.MessageBus.Subscribe("vcap.component.announce", func(message *nats.Msg) {
+		natsRunner.Client.Subscribe("vcap.component.announce", func(message *nats.Msg) {
 			err := json.Unmarshal(message.Data, reg)
 			receivedAnnounce <- true
 			Ω(err).ShouldNot(HaveOccurred())

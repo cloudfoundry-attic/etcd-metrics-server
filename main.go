@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cloudfoundry/yagnats"
+	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/sigmon"
@@ -95,7 +95,7 @@ func main() {
 	}
 }
 
-func initializeServer(logger lager.Logger, natsClient yagnats.NATSConn) *metrics_server.MetricsServer {
+func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *metrics_server.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
 	return metrics_server.New(registrar, logger, metrics_server.Config{
 		JobName: *jobName,
@@ -110,8 +110,7 @@ func initializeServer(logger lager.Logger, natsClient yagnats.NATSConn) *metrics
 	})
 }
 
-func initializeNatsClient(logger lager.Logger) yagnats.NATSConn {
-
+func initializeNatsClient(logger lager.Logger) diegonats.NATSClient {
 	natsMembers := []string{}
 	for _, addr := range strings.Split(*natsAddresses, ",") {
 		uri := url.URL{
@@ -121,7 +120,9 @@ func initializeNatsClient(logger lager.Logger) yagnats.NATSConn {
 		}
 		natsMembers = append(natsMembers, uri.String())
 	}
-	natsClient, err := yagnats.Connect(natsMembers)
+
+	natsClient := diegonats.NewClient()
+	err := natsClient.Connect(natsMembers)
 	if err != nil {
 		logger.Fatal("failed-to-connect-to-nats", err)
 	}
