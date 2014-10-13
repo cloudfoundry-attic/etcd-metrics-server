@@ -4,11 +4,11 @@ import (
 	"flag"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
+	"github.com/tedsuo/ifrit/grouper"
 	"github.com/tedsuo/ifrit/sigmon"
 
 	"github.com/cloudfoundry-incubator/cf-debug-server"
@@ -81,13 +81,17 @@ func main() {
 	flag.Parse()
 
 	logger := cf_lager.New("etcd-metrics-server")
-	natsClient := initializeNatsClient(logger)
+
+	natsClient := diegonats.NewClient()
+	natsClientRunner := diegonats.NewClientRunner(*natsAddresses, *natsUsername, *natsPassword, logger, natsClient)
 
 	cf_debug_server.Run()
 
-	server := initializeServer(logger, natsClient)
-
-	monitorProcess := ifrit.Envoke(sigmon.New(server))
+	group := grouper.NewOrdered(os.Interrupt, grouper.Members{
+		{"nats-client", natsClientRunner},
+		{"server", initializeServer(logger, natsClient)},
+	})
+	monitorProcess := ifrit.Invoke(sigmon.New(group))
 
 	err := <-monitorProcess.Wait()
 	if err != nil {
@@ -108,24 +112,4 @@ func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *met
 		Password: *password,
 		Index:    *index,
 	})
-}
-
-func initializeNatsClient(logger lager.Logger) diegonats.NATSClient {
-	natsMembers := []string{}
-	for _, addr := range strings.Split(*natsAddresses, ",") {
-		uri := url.URL{
-			Scheme: "nats",
-			User:   url.UserPassword(*natsUsername, *natsPassword),
-			Host:   addr,
-		}
-		natsMembers = append(natsMembers, uri.String())
-	}
-
-	natsClient := diegonats.NewClient()
-	err := natsClient.Connect(natsMembers)
-	if err != nil {
-		logger.Fatal("failed-to-connect-to-nats", err)
-	}
-
-	return natsClient
 }
