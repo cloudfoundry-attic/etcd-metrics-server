@@ -15,22 +15,24 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/tedsuo/ifrit"
 )
 
 var _ = Describe("Etcd Metrics Server", func() {
-	var natsRunner *diegonats.NATSRunner
+	var gnatsdRunner ifrit.Process
+	var natsClient diegonats.NATSClient
 	var etcdRunner *etcdstorerunner.ETCDClusterRunner
 	var session *gexec.Session
 
 	BeforeEach(func() {
-		natsRunner = diegonats.NewRunner(4222)
-		natsRunner.Start()
+		gnatsdRunner, natsClient = diegonats.StartGnatsd(4222)
 		etcdRunner = etcdstorerunner.NewETCDClusterRunner(5001, 1)
 		etcdRunner.Start()
 	})
 
 	AfterEach(func() {
-		natsRunner.Stop()
+		gnatsdRunner.Signal(os.Interrupt)
+		Eventually(gnatsdRunner.Wait(), 5).Should(Receive())
 		etcdRunner.Stop()
 		session.Kill().Wait()
 	})
@@ -44,7 +46,7 @@ var _ = Describe("Etcd Metrics Server", func() {
 		var reg = new(registration)
 
 		receivedAnnounce := make(chan bool)
-		natsRunner.Client.Subscribe("vcap.component.announce", func(message *nats.Msg) {
+		natsClient.Subscribe("vcap.component.announce", func(message *nats.Msg) {
 			err := json.Unmarshal(message.Data, reg)
 			receivedAnnounce <- true
 			Ω(err).ShouldNot(HaveOccurred())
