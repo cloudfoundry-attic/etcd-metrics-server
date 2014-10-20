@@ -17,7 +17,7 @@ func TestEtcdMetricsServer(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	var err error
-	metricsServerPath, err = gexec.Build("github.com/cloudfoundry-incubator/etcd-metrics-server")
+	metricsServerPath, err = gexec.Build("github.com/cloudfoundry-incubator/etcd-metrics-server/cmd/etcd-metrics-server")
 	Ω(err).ShouldNot(HaveOccurred())
 })
 
