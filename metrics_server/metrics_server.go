@@ -45,7 +45,7 @@ func (server *MetricsServer) Run(signals <-chan os.Signal, ready chan<- struct{}
 		server.config.JobName,
 		server.config.Index,
 		health_check.New("tcp", server.config.EtcdURL.Host, server.logger),
-		uint32(server.config.Port),
+		uint16(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
 		[]instrumentation.Instrumentable{
 			instruments.NewLeader(server.config.EtcdURL.String(), server.logger),
@@ -79,7 +79,7 @@ func (server *MetricsServer) start() error {
 		server.config.JobName,
 		server.config.Index,
 		health_check.New("tcp", server.config.EtcdURL.Host, server.logger),
-		uint32(server.config.Port),
+		uint16(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
 		[]instrumentation.Instrumentable{
 			instruments.NewLeader(server.config.EtcdURL.String(), server.logger),
