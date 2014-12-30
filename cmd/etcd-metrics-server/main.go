@@ -4,6 +4,7 @@ import (
 	"flag"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/pivotal-golang/lager"
@@ -12,6 +13,7 @@ import (
 	"github.com/tedsuo/ifrit/sigmon"
 
 	"github.com/cloudfoundry-incubator/cf-debug-server"
+	"github.com/cloudfoundry-incubator/cf-http"
 	"github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
@@ -77,9 +79,18 @@ var natsPassword = flag.String(
 	"Password for nats user",
 )
 
-func main() {
-	flag.Parse()
+var communicationTimeout = flag.Duration(
+	"communicationTimeout",
+	30*time.Second,
+	"Timeout applied to all HTTP requests.",
+)
 
+func init() {
+	flag.Parse()
+	cf_http.Initialize(*communicationTimeout)
+}
+
+func main() {
 	logger := cf_lager.New("etcd-metrics-server")
 
 	natsClient := diegonats.NewClient()

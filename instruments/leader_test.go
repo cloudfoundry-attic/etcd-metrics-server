@@ -2,6 +2,7 @@ package instruments_test
 
 import (
 	"net/http"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -125,6 +126,25 @@ var _ = Describe("Leader Instrumentation", func() {
 			var leaderRequest = test_server.CombineHandlers(
 				test_server.VerifyRequest("GET", "/v2/stats/leader"),
 				test_server.Respond(200, "ß"),
+			)
+
+			BeforeEach(func() {
+				s.Append(leaderRequest)
+			})
+
+			It("does not report any metrics", func() {
+				context := leader.Emit()
+				Ω(context.Metrics).Should(BeEmpty())
+			})
+		})
+
+		Context("when the request to the etcd server times out", func() {
+			var leaderRequest = test_server.CombineHandlers(
+				test_server.VerifyRequest("GET", "/v2/stats/leader"),
+				func(w http.ResponseWriter, req *http.Request) {
+					time.Sleep(timeout + 100*time.Millisecond)
+				},
+				test_server.Respond(200, ` { "followers": {}, "leader": "node0" }`),
 			)
 
 			BeforeEach(func() {

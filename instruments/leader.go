@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/cloudfoundry-incubator/cf-http"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 	"github.com/cloudfoundry/gunk/urljoiner"
 	"github.com/pivotal-golang/lager"
@@ -34,10 +35,9 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	var stats RaftFollowersStats
 
-	client := &http.Client{
-		CheckRedirect: func(*http.Request, []*http.Request) error {
-			return ErrRedirected
-		},
+	client := cf_http.NewClient()
+	client.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return ErrRedirected
 	}
 
 	resp, err := client.Get(leader.statsEndpoint)
