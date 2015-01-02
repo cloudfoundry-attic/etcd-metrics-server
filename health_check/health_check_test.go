@@ -5,22 +5,21 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal-golang/lager/lagertest"
-
-	"github.com/cloudfoundry/gunk/test_server"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
 )
 
 var _ = Describe("HealthCheck", func() {
 	var (
-		server *test_server.Server
+		server *ghttp.Server
 		check  *HealthCheck
 	)
 
 	Context("when the server is up", func() {
 		BeforeEach(func() {
-			server = test_server.New()
+			server = ghttp.NewServer()
 
 			check = New(
 				server.HTTPTestServer.Listener.Addr().Network(),

@@ -5,9 +5,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal-golang/lager/lagertest"
 
-	"github.com/cloudfoundry/gunk/test_server"
 	"github.com/cloudfoundry/gunk/urljoiner"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
@@ -16,12 +16,12 @@ import (
 
 var _ = Describe("Leader Instrumentation", func() {
 	var (
-		s      *test_server.Server
+		s      *ghttp.Server
 		leader *Leader
 	)
 
 	BeforeEach(func() {
-		s = test_server.New()
+		s = ghttp.NewServer()
 
 		leader = NewLeader(s.URL(), lagertest.NewTestLogger("test"))
 	})
@@ -32,9 +32,9 @@ var _ = Describe("Leader Instrumentation", func() {
 		})
 
 		Context("when the etcd server is a leader", func() {
-			var leaderRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/leader"),
-				test_server.Respond(200, `
+			var leaderRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/stats/leader"),
+				ghttp.RespondWith(200, `
                         {
                           "followers": {
                             "node1": {
@@ -70,7 +70,7 @@ var _ = Describe("Leader Instrumentation", func() {
 			)
 
 			BeforeEach(func() {
-				s.Append(leaderRequest)
+				s.AppendHandlers(leaderRequest)
 			})
 
 			It("should return them", func() {
@@ -102,8 +102,8 @@ var _ = Describe("Leader Instrumentation", func() {
 		})
 
 		Context("when the etcd server is a follower", func() {
-			var leaderRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/leader"),
+			var leaderRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/stats/leader"),
 				func(w http.ResponseWriter, req *http.Request) {
 					w.Header().Set("Location", urljoiner.Join(s.URL(), "some", "other", "leader"))
 					w.WriteHeader(302)
@@ -111,7 +111,7 @@ var _ = Describe("Leader Instrumentation", func() {
 			)
 
 			BeforeEach(func() {
-				s.Append(leaderRequest)
+				s.AppendHandlers(leaderRequest)
 			})
 
 			It("does not report any metrics", func() {
@@ -122,13 +122,13 @@ var _ = Describe("Leader Instrumentation", func() {
 		})
 
 		Context("when the etcd server gives invalid JSON", func() {
-			var leaderRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/leader"),
-				test_server.Respond(200, "ß"),
+			var leaderRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/stats/leader"),
+				ghttp.RespondWith(200, "ß"),
 			)
 
 			BeforeEach(func() {
-				s.Append(leaderRequest)
+				s.AppendHandlers(leaderRequest)
 			})
 
 			It("does not report any metrics", func() {

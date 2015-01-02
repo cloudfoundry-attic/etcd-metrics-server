@@ -6,9 +6,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal-golang/lager/lagertest"
-
-	"github.com/cloudfoundry/gunk/test_server"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
@@ -16,12 +15,12 @@ import (
 
 var _ = Describe("Store Instrumentation", func() {
 	var (
-		s     *test_server.Server
+		s     *ghttp.Server
 		store *Store
 	)
 
 	BeforeEach(func() {
-		s = test_server.New()
+		s = ghttp.NewServer()
 		store = NewStore(s.URL(), lagertest.NewTestLogger("test"))
 	})
 
@@ -52,13 +51,13 @@ var _ = Describe("Store Instrumentation", func() {
 			panic(err)
 		}
 
-		var statsRequest = test_server.CombineHandlers(
-			test_server.VerifyRequest("GET", "/v2/stats/store"),
-			test_server.Respond(200, string(statsPayload)),
+		var statsRequest = ghttp.CombineHandlers(
+			ghttp.VerifyRequest("GET", "/v2/stats/store"),
+			ghttp.RespondWith(200, string(statsPayload)),
 		)
 
-		var keysRequest = test_server.CombineHandlers(
-			test_server.VerifyRequest("GET", "/v2/keys/"),
+		var keysRequest = ghttp.CombineHandlers(
+			ghttp.VerifyRequest("GET", "/v2/keys/"),
 			func(w http.ResponseWriter, req *http.Request) {
 				w.Header().Set("X-Etcd-Index", "10001")
 				w.Header().Set("X-Raft-Index", "10204")
@@ -69,7 +68,7 @@ var _ = Describe("Store Instrumentation", func() {
 
 		Context("when the etcd server gives valid JSON", func() {
 			BeforeEach(func() {
-				s.Append(statsRequest, keysRequest)
+				s.AppendHandlers(statsRequest, keysRequest)
 			})
 
 			It("should return them", func() {
@@ -165,13 +164,13 @@ var _ = Describe("Store Instrumentation", func() {
 		})
 
 		Context("when the etcd server gives invalid JSON", func() {
-			var statsRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/store"),
-				test_server.Respond(200, "ß"),
+			var statsRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/stats/store"),
+				ghttp.RespondWith(200, "ß"),
 			)
 
 			BeforeEach(func() {
-				s.Append(statsRequest)
+				s.AppendHandlers(statsRequest)
 			})
 
 			It("does not report any metrics", func() {
@@ -181,13 +180,13 @@ var _ = Describe("Store Instrumentation", func() {
 		})
 
 		Context("when getting the keys fails", func() {
-			var keysRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/keys/"),
-				test_server.Respond(404, ""),
+			var keysRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/keys/"),
+				ghttp.RespondWith(404, ""),
 			)
 
 			BeforeEach(func() {
-				s.Append(statsRequest, keysRequest)
+				s.AppendHandlers(statsRequest, keysRequest)
 			})
 
 			It("does not report any metrics", func() {

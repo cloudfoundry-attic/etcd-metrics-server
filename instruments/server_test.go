@@ -3,9 +3,8 @@ package instruments_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal-golang/lager/lagertest"
-
-	"github.com/cloudfoundry/gunk/test_server"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
@@ -13,12 +12,12 @@ import (
 
 var _ = Describe("Server Instrumentation", func() {
 	var (
-		s      *test_server.Server
+		s      *ghttp.Server
 		server *Server
 	)
 
 	BeforeEach(func() {
-		s = test_server.New()
+		s = ghttp.NewServer()
 		server = NewServer(s.URL(), lagertest.NewTestLogger("test"))
 	})
 
@@ -28,9 +27,9 @@ var _ = Describe("Server Instrumentation", func() {
 		})
 
 		Context("when the etcd server gives valid JSON", func() {
-			var leaderRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/self"),
-				test_server.Respond(200, `
+			var leaderRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/stats/self"),
+				ghttp.RespondWith(200, `
                     {
                         "name": "node1",
                         "state": "leader",
@@ -52,7 +51,7 @@ var _ = Describe("Server Instrumentation", func() {
 			)
 
 			BeforeEach(func() {
-				s.Append(leaderRequest)
+				s.AppendHandlers(leaderRequest)
 			})
 
 			It("should return them", func() {
@@ -98,13 +97,13 @@ var _ = Describe("Server Instrumentation", func() {
 		})
 
 		Context("when the etcd server gives invalid JSON", func() {
-			var leaderRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/self"),
-				test_server.Respond(200, "ß"),
+			var leaderRequest = ghttp.CombineHandlers(
+				ghttp.VerifyRequest("GET", "/v2/stats/self"),
+				ghttp.RespondWith(200, "ß"),
 			)
 
 			BeforeEach(func() {
-				s.Append(leaderRequest)
+				s.AppendHandlers(leaderRequest)
 			})
 
 			It("does not report any metrics", func() {
