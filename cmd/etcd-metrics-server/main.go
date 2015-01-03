@@ -78,6 +78,7 @@ var natsPassword = flag.String(
 )
 
 func main() {
+	cf_debug_server.AddFlags(flag.CommandLine)
 	flag.Parse()
 
 	logger := cf_lager.New("etcd-metrics-server")
@@ -85,12 +86,18 @@ func main() {
 	natsClient := diegonats.NewClient()
 	natsClientRunner := diegonats.NewClientRunner(*natsAddresses, *natsUsername, *natsPassword, logger, natsClient)
 
-	cf_debug_server.Run()
-
-	group := grouper.NewOrdered(os.Interrupt, grouper.Members{
+	members := grouper.Members{
 		{"nats-client", natsClientRunner},
 		{"server", initializeServer(logger, natsClient)},
-	})
+	}
+
+	if dbgAddr := cf_debug_server.DebugAddress(flag.CommandLine); dbgAddr != "" {
+		members = append(grouper.Members{
+			{"debug-server", cf_debug_server.Runner(dbgAddr)},
+		}, members...)
+	}
+
+	group := grouper.NewOrdered(os.Interrupt, members)
 	monitorProcess := ifrit.Invoke(sigmon.New(group))
 
 	err := <-monitorProcess.Wait()
