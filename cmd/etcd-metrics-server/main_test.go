@@ -11,6 +11,7 @@ import (
 
 	"github.com/apcera/nats"
 	"github.com/cloudfoundry/gunk/diegonats"
+	"github.com/cloudfoundry/gunk/diegonats/gnatsdrunner"
 	"github.com/cloudfoundry/storeadapter/storerunner/etcdstorerunner"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,8 +26,8 @@ var _ = Describe("Etcd Metrics Server", func() {
 	var session *gexec.Session
 
 	BeforeEach(func() {
-		gnatsdRunner, natsClient = diegonats.StartGnatsd(4222)
-		etcdRunner = etcdstorerunner.NewETCDClusterRunner(5001, 1)
+		gnatsdRunner, natsClient = gnatsdrunner.StartGnatsd(4222)
+		etcdRunner = etcdstorerunner.NewETCDClusterRunner(5001, 1, nil)
 		etcdRunner.Start()
 	})
 
