@@ -15,7 +15,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-debug-server"
 	"github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/cf_http"
-	"github.com/cloudfoundry-incubator/etcd-metrics-server/metrics_server"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 )
 
@@ -117,9 +117,9 @@ func main() {
 	}
 }
 
-func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *metrics_server.MetricsServer {
+func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *runners.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
-	return metrics_server.New(registrar, logger, metrics_server.Config{
+	return runners.New(registrar, logger, runners.Config{
 		JobName: *jobName,
 		EtcdURL: &url.URL{
 			Scheme: *etcdScheme,

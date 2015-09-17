@@ -1,4 +1,4 @@
-package metrics_server
+package runners
 
 import (
 	"net/url"
