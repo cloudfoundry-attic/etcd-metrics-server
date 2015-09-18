@@ -32,7 +32,7 @@ var _ = Describe("Server Instrumentation", func() {
 				ghttp.RespondWith(200, `
                     {
                         "name": "node1",
-                        "state": "leader",
+                        "state": "StateLeader",
 
                         "leaderInfo": {
                             "name": "node1",

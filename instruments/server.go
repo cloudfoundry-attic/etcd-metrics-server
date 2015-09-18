@@ -45,7 +45,7 @@ func (server *Server) Emit() instrumentation.Context {
 	}
 
 	isLeader := 0
-	if stats.State == "leader" {
+	if stats.State == "StateLeader" {
 		isLeader = 1
 	}
 
