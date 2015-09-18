@@ -42,7 +42,7 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	resp, err := client.Get(leader.statsEndpoint)
 	if err != nil {
-		leader.logger.Error("failed-to-collect-stats", err)
+		leader.logger.Error("failed-to-collect-leader-stats", err)
 		return context
 	}
 
@@ -50,7 +50,7 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	err = json.NewDecoder(resp.Body).Decode(&stats)
 	if err != nil {
-		leader.logger.Error("failed-to-unmarshal-stats", err)
+		leader.logger.Error("failed-to-unmarshal-leader-stats", err)
 		return context
 	}
 

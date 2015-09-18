@@ -36,7 +36,7 @@ func (store *Store) Emit() instrumentation.Context {
 
 	statsResp, err := http.Get(store.statsEndpoint)
 	if err != nil {
-		store.logger.Error("failed-to-collect-stats", err)
+		store.logger.Error("failed-to-collect-store-stats", err)
 		return context
 	}
 
@@ -44,7 +44,7 @@ func (store *Store) Emit() instrumentation.Context {
 
 	err = json.NewDecoder(statsResp.Body).Decode(&stats)
 	if err != nil {
-		store.logger.Error("failed-to-unmarshal-stats", err)
+		store.logger.Error("failed-to-unmarshal-store-stats", err)
 		return context
 	}
 

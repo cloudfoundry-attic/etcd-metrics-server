@@ -32,7 +32,7 @@ func (server *Server) Emit() instrumentation.Context {
 
 	resp, err := http.Get(server.statsEndpoint)
 	if err != nil {
-		server.logger.Error("failed-to-collect-stats", err)
+		server.logger.Error("failed-to-collect-self-stats", err)
 		return context
 	}
 
@@ -40,7 +40,7 @@ func (server *Server) Emit() instrumentation.Context {
 
 	err = json.NewDecoder(resp.Body).Decode(&stats)
 	if err != nil {
-		server.logger.Error("failed-to-unmarshal-stats", err)
+		server.logger.Error("failed-to-unmarshal-self-stats", err)
 		return context
 	}
 
