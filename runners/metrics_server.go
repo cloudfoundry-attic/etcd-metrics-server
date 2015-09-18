@@ -31,7 +31,7 @@ type Config struct {
 	Password string
 }
 
-func New(registrar collector_registrar.CollectorRegistrar, logger lager.Logger, config Config) *MetricsServer {
+func NewMetricsServer(registrar collector_registrar.CollectorRegistrar, logger lager.Logger, config Config) *MetricsServer {
 	return &MetricsServer{
 		registrar: registrar,
 		logger:    logger,

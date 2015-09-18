@@ -147,7 +147,7 @@ func initializeMetronNotifier(logger lager.Logger) *runners.PeriodicMetronNotifi
 
 func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *runners.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
-	return runners.New(registrar, logger, runners.Config{
+	return runners.NewMetricsServer(registrar, logger, runners.Config{
 		JobName:  *jobName,
 		EtcdURL:  createEtcdURL(),
 		Port:     *port,
