@@ -2,21 +2,22 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"net/url"
 	"os"
 	"time"
-
-	"github.com/cloudfoundry/gunk/diegonats"
-	"github.com/pivotal-golang/lager"
-	"github.com/tedsuo/ifrit"
-	"github.com/tedsuo/ifrit/grouper"
-	"github.com/tedsuo/ifrit/sigmon"
 
 	"github.com/cloudfoundry-incubator/cf-debug-server"
 	"github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/cf_http"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
+	"github.com/cloudfoundry/dropsonde"
+	"github.com/cloudfoundry/gunk/diegonats"
+	"github.com/pivotal-golang/lager"
+	"github.com/tedsuo/ifrit"
+	"github.com/tedsuo/ifrit/grouper"
+	"github.com/tedsuo/ifrit/sigmon"
 )
 
 var jobName = flag.String(
@@ -47,6 +48,12 @@ var port = flag.Int(
 	"port",
 	5678,
 	"port to listen on",
+)
+
+var metronAddress = flag.String(
+	"metronAddress",
+	"127.0.0.1:3457",
+	"metron agent address",
 )
 
 var username = flag.String(
@@ -85,14 +92,23 @@ var communicationTimeout = flag.Duration(
 	"Timeout applied to all HTTP requests.",
 )
 
+var reportInterval = flag.Duration(
+	"reportInterval",
+	time.Minute,
+	"interval on which to report metrics",
+)
+
 func main() {
 	cf_debug_server.AddFlags(flag.CommandLine)
 	cf_lager.AddFlags(flag.CommandLine)
 	flag.Parse()
 
+	dropsonde.Initialize(*metronAddress, *jobName)
 	cf_http.Initialize(*communicationTimeout)
 
-	logger, reconfigurableSink := cf_lager.New("etcd-metrics-server")
+	componentName := fmt.Sprintf("%s-metrics-server", *jobName)
+
+	logger, reconfigurableSink := cf_lager.New(componentName)
 
 	natsClient := diegonats.NewClient()
 	natsClientRunner := diegonats.NewClientRunner(*natsAddresses, *natsUsername, *natsPassword, logger, natsClient)
@@ -100,6 +116,7 @@ func main() {
 	members := grouper.Members{
 		{"nats-client", natsClientRunner},
 		{"server", initializeServer(logger, natsClient)},
+		{"metron-notifier", initializeMetronNotifier(logger)},
 	}
 
 	if dbgAddr := cf_debug_server.DebugAddress(flag.CommandLine); dbgAddr != "" {
@@ -117,14 +134,22 @@ func main() {
 	}
 }
 
+func createEtcdURL() *url.URL {
+	return &url.URL{
+		Scheme: *etcdScheme,
+		Host:   *etcdAddress,
+	}
+}
+
+func initializeMetronNotifier(logger lager.Logger) *runners.PeriodicMetronNotifier {
+	return runners.NewPeriodicMetronNotifier(createEtcdURL().String(), logger, *reportInterval)
+}
+
 func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *runners.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
 	return runners.New(registrar, logger, runners.Config{
-		JobName: *jobName,
-		EtcdURL: &url.URL{
-			Scheme: *etcdScheme,
-			Host:   *etcdAddress,
-		},
+		JobName:  *jobName,
+		EtcdURL:  createEtcdURL(),
 		Port:     *port,
 		Username: *username,
 		Password: *password,
