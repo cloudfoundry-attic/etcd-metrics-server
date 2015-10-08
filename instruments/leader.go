@@ -13,6 +13,7 @@ import (
 
 type Leader struct {
 	statsEndpoint string
+	client        *http.Client
 
 	logger lager.Logger
 }
@@ -20,8 +21,14 @@ type Leader struct {
 var ErrRedirected = errors.New("redirected to leader")
 
 func NewLeader(etcdAddr string, logger lager.Logger) *Leader {
+	client := cf_http.NewClient()
+	client.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return ErrRedirected
+	}
+
 	return &Leader{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "leader"),
+		client:        client,
 
 		logger: logger,
 	}
@@ -35,12 +42,7 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	var stats RaftFollowersStats
 
-	client := cf_http.NewClient()
-	client.CheckRedirect = func(*http.Request, []*http.Request) error {
-		return ErrRedirected
-	}
-
-	resp, err := client.Get(leader.statsEndpoint)
+	resp, err := leader.client.Get(leader.statsEndpoint)
 	if err != nil {
 		leader.logger.Error("failed-to-collect-leader-stats", err)
 		return context
