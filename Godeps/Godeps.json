@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/cloudfoundry-incubator/etcd-metrics-server",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."
 	],
@@ -67,6 +67,10 @@
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",
 			"Rev": "b9e369e8ffb6773efc654ea13594566404314ee1"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "3d2510a4dd961caffa2ae781669c628d82db700a"
 		},
 		{
 			"ImportPath": "github.com/nats-io/nats/encoders/builtin",
