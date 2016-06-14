@@ -11,7 +11,6 @@ function main() {
   pushd "${GOPATH}/src/github.com/cloudfoundry-incubator" > /dev/null
     echo ${root}
     ln -s "${root}etcd-metrics-server"
-    ls -lah
     pushd ./etcd-metrics-server > /dev/null
       export GOPATH="${PWD}/Godeps/_workspace:${GOPATH}"
       export PATH="${PWD}/Godeps/_workspace/bin:${PATH}"
