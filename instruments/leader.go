@@ -3,9 +3,7 @@ package instruments
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
 
-	"github.com/cloudfoundry-incubator/cf_http"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 	"github.com/cloudfoundry/gunk/urljoiner"
 	"github.com/pivotal-golang/lager"
@@ -13,24 +11,17 @@ import (
 
 type Leader struct {
 	statsEndpoint string
-	client        *http.Client
-
-	logger lager.Logger
+	logger        lager.Logger
+	getter        getter
 }
 
 var ErrRedirected = errors.New("redirected to leader")
 
-func NewLeader(etcdAddr string, logger lager.Logger) *Leader {
-	client := cf_http.NewClient()
-	client.CheckRedirect = func(*http.Request, []*http.Request) error {
-		return ErrRedirected
-	}
-
+func NewLeader(getter getter, etcdAddr string, logger lager.Logger) *Leader {
 	return &Leader{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "leader"),
-		client:        client,
-
-		logger: logger,
+		logger:        logger,
+		getter:        getter,
 	}
 }
 
@@ -42,7 +33,7 @@ func (leader *Leader) Emit() instrumentation.Context {
 
 	var stats RaftFollowersStats
 
-	resp, err := leader.client.Get(leader.statsEndpoint)
+	resp, err := leader.getter.Get(leader.statsEndpoint)
 	if err != nil {
 		leader.logger.Error("failed-to-collect-leader-stats", err)
 		return context

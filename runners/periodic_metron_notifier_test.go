@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/fakes"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry/dropsonde/metric_sender/fake"
 	"github.com/cloudfoundry/dropsonde/metrics"
@@ -31,9 +32,11 @@ var _ = Describe("PeriodicMetronNotifier", func() {
 		reportInterval time.Duration
 
 		metronNotifier ifrit.Process
+		fakeGetter     *fakes.Getter
 	)
 
 	BeforeEach(func() {
+		fakeGetter = &fakes.Getter{}
 		leader = ghttp.NewServer()
 		follower = ghttp.NewServer()
 
@@ -63,6 +66,7 @@ var _ = Describe("PeriodicMetronNotifier", func() {
 
 	JustBeforeEach(func() {
 		metronNotifier = ifrit.Invoke(runners.NewPeriodicMetronNotifier(
+			fakeGetter,
 			etcdURL,
 			logger,
 			reportInterval,

@@ -2,6 +2,7 @@ package runners
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"reflect"
 	"time"
@@ -13,18 +14,24 @@ import (
 )
 
 type PeriodicMetronNotifier struct {
+	getter   getter
 	etcdURL  string
 	logger   lager.Logger
 	interval time.Duration
 }
 
+type getter interface {
+	Get(address string) (*http.Response, error)
+}
+
 func NewPeriodicMetronNotifier(
+	getter getter,
 	etcdURL string,
 	logger lager.Logger,
 	interval time.Duration,
 ) *PeriodicMetronNotifier {
 
-	return &PeriodicMetronNotifier{etcdURL, logger, interval}
+	return &PeriodicMetronNotifier{getter, etcdURL, logger, interval}
 }
 
 func convertToFloat64(value interface{}) float64 {
@@ -52,9 +59,9 @@ func sendMetrics(instrument instrumentation.Instrumentable) {
 
 func (n *PeriodicMetronNotifier) Run(signals <-chan os.Signal, ready chan<- struct{}) error {
 	instruments := []instrumentation.Instrumentable{
-		instruments.NewLeader(n.etcdURL, n.logger),
-		instruments.NewServer(n.etcdURL, n.logger),
-		instruments.NewStore(n.etcdURL, n.logger),
+		instruments.NewLeader(n.getter, n.etcdURL, n.logger),
+		instruments.NewServer(n.getter, n.etcdURL, n.logger),
+		instruments.NewStore(n.getter, n.etcdURL, n.logger),
 	}
 
 	ticker := time.NewTicker(n.interval)

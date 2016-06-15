@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/cloudfoundry-incubator/cf-debug-server"
 	"github.com/cloudfoundry-incubator/cf-lager"
 	"github.com/cloudfoundry-incubator/cf_http"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 	"github.com/cloudfoundry/dropsonde"
@@ -98,6 +100,24 @@ var reportInterval = flag.Duration(
 	"interval on which to report metrics",
 )
 
+var caCertFilePath = flag.String(
+	"caCert",
+	"",
+	"Path to the ETCD server CA",
+)
+
+var certFilePath = flag.String(
+	"cert",
+	"",
+	"Path to the ETCD server cert",
+)
+
+var keyFilePath = flag.String(
+	"key",
+	"",
+	"Path to the ETCD server key",
+)
+
 func main() {
 	cf_debug_server.AddFlags(flag.CommandLine)
 	cf_lager.AddFlags(flag.CommandLine)
@@ -105,6 +125,20 @@ func main() {
 
 	dropsonde.Initialize(*metronAddress, *jobName)
 	cf_http.Initialize(*communicationTimeout)
+
+	client := cf_http.NewClient()
+	client.CheckRedirect = func(*http.Request, []*http.Request) error {
+		return instruments.ErrRedirected
+	}
+
+	if *caCertFilePath != "" && *certFilePath != "" && *keyFilePath != "" {
+		tlsConfig, err := cf_http.NewTLSConfig(*certFilePath, *keyFilePath, *caCertFilePath)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		client.Transport.(*http.Transport).TLSClientConfig = tlsConfig
+	}
 
 	componentName := fmt.Sprintf("%s-metrics-server", *jobName)
 
@@ -115,8 +149,8 @@ func main() {
 
 	members := grouper.Members{
 		{"nats-client", natsClientRunner},
-		{"server", initializeServer(logger, natsClient)},
-		{"metron-notifier", initializeMetronNotifier(logger)},
+		{"server", initializeServer(client, logger, natsClient)},
+		{"metron-notifier", initializeMetronNotifier(client, logger)},
 	}
 
 	if dbgAddr := cf_debug_server.DebugAddress(flag.CommandLine); dbgAddr != "" {
@@ -141,18 +175,18 @@ func createEtcdURL() *url.URL {
 	}
 }
 
-func initializeMetronNotifier(logger lager.Logger) *runners.PeriodicMetronNotifier {
-	return runners.NewPeriodicMetronNotifier(createEtcdURL().String(), logger, *reportInterval)
+func initializeMetronNotifier(client *http.Client, logger lager.Logger) *runners.PeriodicMetronNotifier {
+	return runners.NewPeriodicMetronNotifier(client, createEtcdURL().String(), logger, *reportInterval)
 }
 
-func initializeServer(logger lager.Logger, natsClient diegonats.NATSClient) *runners.MetricsServer {
+func initializeServer(client *http.Client, logger lager.Logger, natsClient diegonats.NATSClient) *runners.MetricsServer {
 	registrar := collector_registrar.New(natsClient)
-	return runners.NewMetricsServer(registrar, logger, runners.Config{
+	return runners.NewMetricsServer(client, registrar, logger, runners.Config{
 		JobName:  *jobName,
-		EtcdURL:  createEtcdURL(),
 		Port:     *port,
 		Username: *username,
 		Password: *password,
 		Index:    *index,
+		EtcdURL:  createEtcdURL(),
 	})
 }

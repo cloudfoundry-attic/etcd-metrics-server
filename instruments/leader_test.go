@@ -2,90 +2,89 @@ package instruments_test
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"time"
+
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/fakes"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
+	"github.com/cloudfoundry-incubator/metricz/instrumentation"
+	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
-	"github.com/pivotal-golang/lager/lagertest"
-
-	"github.com/cloudfoundry/gunk/test_server"
-	"github.com/cloudfoundry/gunk/urljoiner"
-
-	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
-	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 )
 
 var _ = Describe("Leader Instrumentation", func() {
 	var (
-		s      *ghttp.Server
-		leader *Leader
+		leader     *instruments.Leader
+		etcdServer *httptest.Server
+		fakeGetter *fakes.Getter
 	)
 
 	BeforeEach(func() {
-		s = ghttp.NewServer()
-
-		leader = NewLeader(s.URL(), lagertest.NewTestLogger("test"))
+		fakeGetter = &fakes.Getter{}
 	})
 
 	Context("when the metrics fetch succesfully", func() {
-		AfterEach(func() {
-			s.Close()
-		})
-
 		Context("when the etcd server is a leader", func() {
-			var leaderRequest = ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/v2/stats/leader"),
-				ghttp.RespondWith(200, `
-                        {
-                          "followers": {
-                            "node1": {
-                              "counts": {
-                                "success": 277031,
-                                "fail": 0
-                              },
-                              "latency": {
-                                "maximum": 65.038854,
-                                "minimum": 0.124347,
-                                "standardDeviation": 0.41350537505117785,
-                                "average": 0.37073788356538245,
-                                "current": 1.0
-                              }
-                            },
-                            "node2": {
-                              "counts": {
-                                "success": 277031,
-                                "fail": 0
-                              },
-                              "latency": {
-                                "maximum": 65.038854,
-                                "minimum": 0.124347,
-                                "standardDeviation": 0.41350537505117785,
-                                "average": 0.37073788356538245,
-                                "current": 2.0
-                              }
-                            }
-                          },
-                          "leader": "node0"
-                        }
-                `),
-			)
-
 			BeforeEach(func() {
-				s.AppendHandlers(leaderRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/stats/leader":
+						if req.Method == "GET" {
+							w.Write([]byte(`
+								{
+								  "followers": {
+									"node1": {
+									  "counts": {
+										"success": 277031,
+										"fail": 0
+									  },
+									  "latency": {
+										"maximum": 65.038854,
+										"minimum": 0.124347,
+										"standardDeviation": 0.41350537505117785,
+										"average": 0.37073788356538245,
+										"current": 1.0
+									  }
+									},
+									"node2": {
+									  "counts": {
+										"success": 277031,
+										"fail": 0
+									  },
+									  "latency": {
+										"maximum": 65.038854,
+										"minimum": 0.124347,
+										"standardDeviation": 0.41350537505117785,
+										"average": 0.37073788356538245,
+										"current": 2.0
+									  }
+									}
+								  },
+								  "leader": "node0"
+								}
+							`))
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+
+				leader = instruments.NewLeader(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("should return them", func() {
 				context := leader.Emit()
 
-				Ω(context.Name).Should(Equal("leader"))
+				Expect(context.Name).Should(Equal("leader"))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "Followers",
 					Value: 2,
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "Latency",
 					Value: 1.0,
 					Tags: map[string]interface{}{
@@ -93,80 +92,97 @@ var _ = Describe("Leader Instrumentation", func() {
 					},
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "Latency",
 					Value: 2.0,
 					Tags: map[string]interface{}{
 						"follower": "node2",
 					},
 				}))
+
+				Expect(fakeGetter.GetCall.CallCount).To(Equal(1))
 			})
 		})
 
 		Context("when the etcd server is a follower", func() {
-			var leaderRequest = ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/v2/stats/leader"),
-				func(w http.ResponseWriter, req *http.Request) {
-					w.Header().Set("Location", urljoiner.Join(s.URL(), "some", "other", "leader"))
-					w.WriteHeader(302)
-				},
-			)
-
 			BeforeEach(func() {
-				s.AppendHandlers(leaderRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/stats/leader":
+						if req.Method == "GET" {
+							w.Header().Set("Location", "http://some/other/leader")
+							w.WriteHeader(http.StatusFound)
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+
+				leader = instruments.NewLeader(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("does not report any metrics", func() {
 				context := leader.Emit()
-				Ω(context.Metrics).ShouldNot(BeNil())
-				Ω(context.Metrics).Should(BeEmpty())
+				Expect(context.Metrics).ShouldNot(BeNil())
+				Expect(context.Metrics).Should(BeEmpty())
 			})
 		})
 
 		Context("when the etcd server gives invalid JSON", func() {
-			var leaderRequest = ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/v2/stats/leader"),
-				ghttp.RespondWith(200, "ß"),
-			)
-
 			BeforeEach(func() {
-				s.AppendHandlers(leaderRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/stats/leader":
+						if req.Method == "GET" {
+							w.Write([]byte("ß"))
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+
+				leader = instruments.NewLeader(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("does not report any metrics", func() {
 				context := leader.Emit()
-				Ω(context.Metrics).Should(BeEmpty())
+				Expect(context.Metrics).Should(BeEmpty())
 			})
 		})
 
 		Context("when the request to the etcd server times out", func() {
-			var leaderRequest = test_server.CombineHandlers(
-				test_server.VerifyRequest("GET", "/v2/stats/leader"),
-				func(w http.ResponseWriter, req *http.Request) {
-					time.Sleep(timeout + 100*time.Millisecond)
-				},
-				test_server.Respond(200, ` { "followers": {}, "leader": "node0" }`),
-			)
-
 			BeforeEach(func() {
-				s.AppendHandlers(leaderRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/stats/leader":
+						if req.Method == "GET" {
+							w.Write([]byte(`{"followers": {}, "leader": "node0" }`))
+							time.Sleep(1100 * time.Millisecond)
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+
+				leader = instruments.NewLeader(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("does not report any metrics", func() {
 				context := leader.Emit()
-				Ω(context.Metrics).Should(BeEmpty())
+				Expect(context.Metrics).Should(BeEmpty())
 			})
 		})
 	})
 
 	Context("when the metrics fail to fetch", func() {
 		BeforeEach(func() {
-			s.Close()
+			etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {}))
+			leader = instruments.NewLeader(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 		})
 
 		It("should not return them", func() {
 			context := leader.Emit()
-			Ω(context.Metrics).Should(BeEmpty())
+			Expect(context.Metrics).Should(BeEmpty())
 		})
 	})
 })

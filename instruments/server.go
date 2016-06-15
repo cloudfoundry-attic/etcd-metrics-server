@@ -11,15 +11,20 @@ import (
 
 type Server struct {
 	statsEndpoint string
-
-	logger lager.Logger
+	logger        lager.Logger
+	getter        getter
 }
 
-func NewServer(etcdAddr string, logger lager.Logger) *Server {
+type getter interface {
+	Get(address string) (*http.Response, error)
+}
+
+func NewServer(getter getter, etcdAddr string, logger lager.Logger) *Server {
 	return &Server{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "self"),
 
 		logger: logger,
+		getter: getter,
 	}
 }
 
@@ -30,7 +35,7 @@ func (server *Server) Emit() instrumentation.Context {
 
 	var stats RaftServerStats
 
-	resp, err := http.Get(server.statsEndpoint)
+	resp, err := server.getter.Get(server.statsEndpoint)
 	if err != nil {
 		server.logger.Error("failed-to-collect-self-stats", err)
 		return context

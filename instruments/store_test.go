@@ -3,160 +3,159 @@ package instruments_test
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal-golang/lager/lagertest"
 
-	. "github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/fakes"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 )
 
 var _ = Describe("Store Instrumentation", func() {
 	var (
-		s     *ghttp.Server
-		store *Store
+		etcdServer *httptest.Server
+		store      *instruments.Store
+		fakeGetter *fakes.Getter
 	)
 
 	BeforeEach(func() {
-		s = ghttp.NewServer()
-		store = NewStore(s.URL(), lagertest.NewTestLogger("test"))
+		fakeGetter = &fakes.Getter{}
 	})
 
 	Context("when the metrics fetch succesfully", func() {
-		AfterEach(func() {
-			s.Close()
-		})
-
-		stats := map[string]uint64{
-			"compareAndSwapFail":    1,
-			"compareAndSwapSuccess": 2,
-			"createFail":            3,
-			"createSuccess":         4,
-			"deleteFail":            5,
-			"deleteSuccess":         6,
-			"expireCount":           7,
-			"getsFail":              8,
-			"getsSuccess":           9,
-			"setsFail":              10,
-			"setsSuccess":           11,
-			"updateFail":            12,
-			"updateSuccess":         13,
-			"watchers":              14,
-		}
-
-		statsPayload, err := json.Marshal(stats)
-		if err != nil {
-			panic(err)
-		}
-
-		var statsRequest = ghttp.CombineHandlers(
-			ghttp.VerifyRequest("GET", "/v2/stats/store"),
-			ghttp.RespondWith(200, string(statsPayload)),
-		)
-
-		var keysRequest = ghttp.CombineHandlers(
-			ghttp.VerifyRequest("GET", "/v2/keys/"),
-			func(w http.ResponseWriter, req *http.Request) {
-				w.Header().Set("X-Etcd-Index", "10001")
-				w.Header().Set("X-Raft-Index", "10204")
-				w.Header().Set("X-Raft-Term", "1234")
-				w.WriteHeader(200)
-			},
-		)
-
 		Context("when the etcd server gives valid JSON", func() {
 			BeforeEach(func() {
-				s.AppendHandlers(statsRequest, keysRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/stats/store":
+						if req.Method == "GET" {
+							stats := map[string]uint64{
+								"compareAndSwapFail":    1,
+								"compareAndSwapSuccess": 2,
+								"createFail":            3,
+								"createSuccess":         4,
+								"deleteFail":            5,
+								"deleteSuccess":         6,
+								"expireCount":           7,
+								"getsFail":              8,
+								"getsSuccess":           9,
+								"setsFail":              10,
+								"setsSuccess":           11,
+								"updateFail":            12,
+								"updateSuccess":         13,
+								"watchers":              14,
+							}
+
+							statsPayload, err := json.Marshal(stats)
+							Expect(err).NotTo(HaveOccurred())
+
+							w.Write(statsPayload)
+							return
+						}
+					case "/v2/keys/":
+						if req.Method == "GET" {
+							w.Header().Set("X-Etcd-Index", "10001")
+							w.Header().Set("X-Raft-Index", "10204")
+							w.Header().Set("X-Raft-Term", "1234")
+							w.WriteHeader(http.StatusOK)
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+				store = instruments.NewStore(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("should return them", func() {
 				context := store.Emit()
 
-				Ω(context.Name).Should(Equal("store"))
+				Expect(context.Name).Should(Equal("store"))
+				Expect(fakeGetter.GetCall.CallCount).To(Equal(2))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "EtcdIndex",
 					Value: uint64(10001),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "RaftIndex",
 					Value: uint64(10204),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "RaftTerm",
 					Value: uint64(1234),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "CompareAndSwapFail",
 					Value: uint64(1),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "CompareAndSwapSuccess",
 					Value: uint64(2),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "CreateFail",
 					Value: uint64(3),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "CreateSuccess",
 					Value: uint64(4),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "DeleteFail",
 					Value: uint64(5),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "DeleteSuccess",
 					Value: uint64(6),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "ExpireCount",
 					Value: uint64(7),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "GetsFail",
 					Value: uint64(8),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "GetsSuccess",
 					Value: uint64(9),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "SetsFail",
 					Value: uint64(10),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "SetsSuccess",
 					Value: uint64(11),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "UpdateFail",
 					Value: uint64(12),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "UpdateSuccess",
 					Value: uint64(13),
 				}))
 
-				Ω(context.Metrics).Should(ContainElement(instrumentation.Metric{
+				Expect(context.Metrics).Should(ContainElement(instrumentation.Metric{
 					Name:  "Watchers",
 					Value: uint64(14),
 				}))
@@ -164,46 +163,59 @@ var _ = Describe("Store Instrumentation", func() {
 		})
 
 		Context("when the etcd server gives invalid JSON", func() {
-			var statsRequest = ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/v2/stats/store"),
-				ghttp.RespondWith(200, "ß"),
-			)
-
 			BeforeEach(func() {
-				s.AppendHandlers(statsRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/stats/store":
+						if req.Method == "GET" {
+							w.Write([]byte("ß"))
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+				store = instruments.NewStore(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("does not report any metrics", func() {
 				context := store.Emit()
-				Ω(context.Metrics).Should(BeEmpty())
+				Expect(context.Metrics).Should(BeEmpty())
 			})
 		})
 
 		Context("when getting the keys fails", func() {
-			var keysRequest = ghttp.CombineHandlers(
-				ghttp.VerifyRequest("GET", "/v2/keys/"),
-				ghttp.RespondWith(404, ""),
-			)
-
 			BeforeEach(func() {
-				s.AppendHandlers(statsRequest, keysRequest)
+				etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					switch req.URL.Path {
+					case "/v2/keys":
+						if req.Method == "GET" {
+							w.WriteHeader(http.StatusNotFound)
+							return
+						}
+					}
+					w.WriteHeader(http.StatusTeapot)
+				}))
+				store = instruments.NewStore(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 			})
 
 			It("does not report any metrics", func() {
 				context := store.Emit()
-				Ω(context.Metrics).Should(BeEmpty())
+				Expect(context.Metrics).Should(BeEmpty())
 			})
 		})
 	})
 
 	Context("when the metrics fail to fetch", func() {
 		BeforeEach(func() {
-			s.Close()
+			etcdServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				w.WriteHeader(http.StatusTeapot)
+			}))
+			store = instruments.NewStore(fakeGetter, etcdServer.URL, lagertest.NewTestLogger("test"))
 		})
 
 		It("should not return them", func() {
 			context := store.Emit()
-			Ω(context.Metrics).Should(BeEmpty())
+			Expect(context.Metrics).Should(BeEmpty())
 		})
 	})
 })

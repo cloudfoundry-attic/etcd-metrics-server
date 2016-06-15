@@ -2,7 +2,6 @@ package instruments
 
 import (
 	"encoding/json"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -14,16 +13,16 @@ import (
 type Store struct {
 	statsEndpoint string
 	keysEndpoint  string
-
-	logger lager.Logger
+	getter        getter
+	logger        lager.Logger
 }
 
-func NewStore(etcdAddr string, logger lager.Logger) *Store {
+func NewStore(getter getter, etcdAddr string, logger lager.Logger) *Store {
 	return &Store{
 		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "store"),
 		keysEndpoint:  urljoiner.Join(etcdAddr, "v2", "keys", "/"),
-
-		logger: logger,
+		getter:        getter,
+		logger:        logger,
 	}
 }
 
@@ -34,7 +33,7 @@ func (store *Store) Emit() instrumentation.Context {
 
 	var stats map[string]uint64
 
-	statsResp, err := http.Get(store.statsEndpoint)
+	statsResp, err := store.getter.Get(store.statsEndpoint)
 	if err != nil {
 		store.logger.Error("failed-to-collect-store-stats", err)
 		return context
@@ -48,7 +47,7 @@ func (store *Store) Emit() instrumentation.Context {
 		return context
 	}
 
-	keysResp, err := http.Get(store.keysEndpoint)
+	keysResp, err := store.getter.Get(store.keysEndpoint)
 	if err != nil {
 		store.logger.Error("failed-to-read-from-store", err)
 		return context

@@ -1,6 +1,7 @@
 package runners
 
 import (
+	"net/http"
 	"net/url"
 	"os"
 
@@ -17,6 +18,7 @@ type MetricsServer struct {
 	registrar collector_registrar.CollectorRegistrar
 	logger    lager.Logger
 	config    Config
+	client    *http.Client
 }
 
 type Config struct {
@@ -31,11 +33,12 @@ type Config struct {
 	Password string
 }
 
-func NewMetricsServer(registrar collector_registrar.CollectorRegistrar, logger lager.Logger, config Config) *MetricsServer {
+func NewMetricsServer(client *http.Client, registrar collector_registrar.CollectorRegistrar, logger lager.Logger, config Config) *MetricsServer {
 	return &MetricsServer{
 		registrar: registrar,
 		logger:    logger,
 		config:    config,
+		client:    client,
 	}
 }
 
@@ -48,9 +51,9 @@ func (server *MetricsServer) Run(signals <-chan os.Signal, ready chan<- struct{}
 		uint16(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
 		[]instrumentation.Instrumentable{
-			instruments.NewLeader(server.config.EtcdURL.String(), server.logger),
-			instruments.NewServer(server.config.EtcdURL.String(), server.logger),
-			instruments.NewStore(server.config.EtcdURL.String(), server.logger),
+			instruments.NewLeader(server.client, server.config.EtcdURL.String(), server.logger),
+			instruments.NewServer(server.client, server.config.EtcdURL.String(), server.logger),
+			instruments.NewStore(server.client, server.config.EtcdURL.String(), server.logger),
 		},
 	)
 
@@ -82,9 +85,9 @@ func (server *MetricsServer) start() error {
 		uint16(server.config.Port),
 		[]string{server.config.Username, server.config.Password},
 		[]instrumentation.Instrumentable{
-			instruments.NewLeader(server.config.EtcdURL.String(), server.logger),
-			instruments.NewServer(server.config.EtcdURL.String(), server.logger),
-			instruments.NewStore(server.config.EtcdURL.String(), server.logger),
+			instruments.NewLeader(server.client, server.config.EtcdURL.String(), server.logger),
+			instruments.NewServer(server.client, server.config.EtcdURL.String(), server.logger),
+			instruments.NewStore(server.client, server.config.EtcdURL.String(), server.logger),
 		},
 	)
 
