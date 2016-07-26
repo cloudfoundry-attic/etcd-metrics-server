@@ -7,10 +7,10 @@ import (
 	"reflect"
 	"time"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 	"github.com/cloudfoundry/dropsonde/metrics"
-	"github.com/pivotal-golang/lager"
 )
 
 type PeriodicMetronNotifier struct {

@@ -10,13 +10,10 @@ function main() {
   mkdir -p "${GOPATH}/src/github.com/cloudfoundry-incubator"
   pushd "${GOPATH}/src/github.com/cloudfoundry-incubator" > /dev/null
     ln -s "${root}etcd-metrics-server"
-    pushd ./etcd-metrics-server > /dev/null
-      export GOPATH="${PWD}/Godeps/_workspace:${GOPATH}"
-      export PATH="${PWD}/Godeps/_workspace/bin:${PATH}"
 
-      mkdir -p "${PWD}/Godeps/_workspace/bin"
-      cp /tmp/etcd-v2.1.1-linux-amd64/etcd "${PWD}/Godeps/_workspace/bin/"
-      cp /tmp/gnatsd "${PWD}/Godeps/_workspace/bin/"
+    pushd ./etcd-metrics-server > /dev/null
+      cp /tmp/etcd-v2.1.1-linux-amd64/etcd /usr/local/bin
+      cp /tmp/gnatsd /usr/local/bin
 
       ginkgo -r -race -randomizeAllSpecs -randomizeSuites
     popd > /dev/null

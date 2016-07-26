@@ -3,7 +3,7 @@ package fakes
 import (
 	"net/http"
 
-	"github.com/cloudfoundry-incubator/cf_http"
+	"code.cloudfoundry.org/cfhttp"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 )
 
@@ -26,7 +26,7 @@ func (g *Getter) Get(address string) (*http.Response, error) {
 		return nil, g.GetCall.Returns.Error
 	}
 
-	client := cf_http.NewClient()
+	client := cfhttp.NewClient()
 	client.CheckRedirect = func(*http.Request, []*http.Request) error {
 		return instruments.ErrRedirected
 	}

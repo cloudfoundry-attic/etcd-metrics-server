@@ -6,15 +6,16 @@ import (
 	"os"
 	"time"
 
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/fakes"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry/dropsonde/metric_sender/fake"
 	"github.com/cloudfoundry/dropsonde/metrics"
+	"github.com/onsi/gomega/ghttp"
+	"github.com/tedsuo/ifrit"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
-	"github.com/pivotal-golang/lager/lagertest"
-	"github.com/tedsuo/ifrit"
 )
 
 // a bit of grace time for eventuallys

@@ -8,15 +8,15 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudfoundry-incubator/cf-debug-server"
-	"github.com/cloudfoundry-incubator/cf-lager"
-	"github.com/cloudfoundry-incubator/cf_http"
+	"code.cloudfoundry.org/cfhttp"
+	"code.cloudfoundry.org/cflager"
+	"code.cloudfoundry.org/debugserver"
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 	"github.com/cloudfoundry/dropsonde"
 	"github.com/cloudfoundry/gunk/diegonats"
-	"github.com/pivotal-golang/lager"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
 	"github.com/tedsuo/ifrit/sigmon"
@@ -119,20 +119,20 @@ var keyFilePath = flag.String(
 )
 
 func main() {
-	cf_debug_server.AddFlags(flag.CommandLine)
-	cf_lager.AddFlags(flag.CommandLine)
+	debugserver.AddFlags(flag.CommandLine)
+	cflager.AddFlags(flag.CommandLine)
 	flag.Parse()
 
 	dropsonde.Initialize(*metronAddress, *jobName)
-	cf_http.Initialize(*communicationTimeout)
+	cfhttp.Initialize(*communicationTimeout)
 
-	client := cf_http.NewClient()
+	client := cfhttp.NewClient()
 	client.CheckRedirect = func(*http.Request, []*http.Request) error {
 		return instruments.ErrRedirected
 	}
 
 	if *caCertFilePath != "" && *certFilePath != "" && *keyFilePath != "" {
-		tlsConfig, err := cf_http.NewTLSConfig(*certFilePath, *keyFilePath, *caCertFilePath)
+		tlsConfig, err := cfhttp.NewTLSConfig(*certFilePath, *keyFilePath, *caCertFilePath)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -142,7 +142,7 @@ func main() {
 
 	componentName := fmt.Sprintf("%s-metrics-server", *jobName)
 
-	logger, reconfigurableSink := cf_lager.New(componentName)
+	logger, reconfigurableSink := cflager.New(componentName)
 
 	natsClient := diegonats.NewClient()
 	natsClientRunner := diegonats.NewClientRunner(*natsAddresses, *natsUsername, *natsPassword, logger, natsClient)
@@ -153,9 +153,9 @@ func main() {
 		{"metron-notifier", initializeMetronNotifier(client, logger)},
 	}
 
-	if dbgAddr := cf_debug_server.DebugAddress(flag.CommandLine); dbgAddr != "" {
+	if dbgAddr := debugserver.DebugAddress(flag.CommandLine); dbgAddr != "" {
 		members = append(grouper.Members{
-			{"debug-server", cf_debug_server.Runner(dbgAddr, reconfigurableSink)},
+			{"debug-server", debugserver.Runner(dbgAddr, reconfigurableSink)},
 		}, members...)
 	}
 

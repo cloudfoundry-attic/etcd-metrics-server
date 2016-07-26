@@ -1,12 +1,13 @@
 package instruments_test
 
 import (
-	"github.com/cloudfoundry-incubator/cf_http"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"testing"
 	"time"
+
+	"code.cloudfoundry.org/cfhttp"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var timeout time.Duration
@@ -18,5 +19,5 @@ func TestInstruments(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	timeout = 1 * time.Second
-	cf_http.Initialize(timeout)
+	cfhttp.Initialize(timeout)
 })

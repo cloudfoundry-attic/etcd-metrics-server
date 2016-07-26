@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/pivotal-golang/lager/lagertest"
-
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/fakes"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Store Instrumentation", func() {

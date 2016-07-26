@@ -3,12 +3,12 @@ package health_check_test
 import (
 	"net"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/onsi/gomega/ghttp"
-	"github.com/pivotal-golang/lager/lagertest"
 
 	. "github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("HealthCheck", func() {

@@ -5,10 +5,10 @@ import (
 	"net/url"
 	"os"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/health_check"
 	"github.com/cloudfoundry-incubator/metricz"
 	"github.com/cloudfoundry-incubator/metricz/instrumentation"
-	"github.com/pivotal-golang/lager"
 
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
