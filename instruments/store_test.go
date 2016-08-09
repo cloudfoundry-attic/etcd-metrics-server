@@ -7,8 +7,8 @@ import (
 
 	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/fakes"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instrumentation"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
-	"github.com/cloudfoundry-incubator/metricz/instrumentation"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

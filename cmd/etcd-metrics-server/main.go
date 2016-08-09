@@ -14,7 +14,6 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
-	"github.com/cloudfoundry-incubator/metricz/collector_registrar"
 	"github.com/cloudfoundry/dropsonde"
 	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/tedsuo/ifrit"
@@ -149,7 +148,6 @@ func main() {
 
 	members := grouper.Members{
 		{"nats-client", natsClientRunner},
-		{"server", initializeServer(client, logger, natsClient)},
 		{"metron-notifier", initializeMetronNotifier(client, logger)},
 	}
 
@@ -177,16 +175,4 @@ func createEtcdURL() *url.URL {
 
 func initializeMetronNotifier(client *http.Client, logger lager.Logger) *runners.PeriodicMetronNotifier {
 	return runners.NewPeriodicMetronNotifier(client, createEtcdURL().String(), logger, *reportInterval)
-}
-
-func initializeServer(client *http.Client, logger lager.Logger, natsClient diegonats.NATSClient) *runners.MetricsServer {
-	registrar := collector_registrar.New(natsClient)
-	return runners.NewMetricsServer(client, registrar, logger, runners.Config{
-		JobName:  *jobName,
-		Port:     *port,
-		Username: *username,
-		Password: *password,
-		Index:    *index,
-		EtcdURL:  createEtcdURL(),
-	})
 }

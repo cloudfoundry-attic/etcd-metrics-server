@@ -1,15 +1,10 @@
 package main_test
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 	"os/exec"
 
-	"github.com/apcera/nats"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/cloudfoundry/gunk/diegonats/gnatsdrunner"
@@ -54,57 +49,11 @@ var _ = Describe("Etcd Metrics Server", func() {
 			session.Kill().Wait()
 		})
 
-		It("starts the server correctly", func(done Done) {
-			var reg = new(registration)
-
-			receivedAnnounce := make(chan bool)
-			natsClient.Subscribe("vcap.component.announce", func(message *nats.Msg) {
-				err := json.Unmarshal(message.Data, reg)
-				receivedAnnounce <- true
-				Expect(err).ShouldNot(HaveOccurred())
-			})
-
-			var err error
-			serverCmd := exec.Command(metricsServerPath, args...)
-			serverCmd.Env = os.Environ()
-
-			session, err = gexec.Start(serverCmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			<-receivedAnnounce
-
-			Eventually(func() error {
-				conn, err := net.Dial("tcp", reg.Host)
-				if err == nil {
-					conn.Close()
-				}
-
-				return err
-			}, 5).ShouldNot(HaveOccurred())
-
-			req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/varz", reg.Host), nil)
-			Expect(err).ShouldNot(HaveOccurred())
-			req.SetBasicAuth(reg.Credentials[0], reg.Credentials[1])
-
-			resp, err := http.DefaultClient.Do(req)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(resp.Status).Should(ContainSubstring("200"))
-
-			body, err := ioutil.ReadAll(resp.Body)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(body).Should(ContainSubstring("etcd-diego"))
-			Expect(body).Should(ContainSubstring("EtcdIndex"))
-			Expect(body).Should(ContainSubstring("RaftIndex"))
-			Expect(body).Should(ContainSubstring("RaftTerm"))
-			close(done)
-		}, 10)
-
 		It("starts the metron notifier correctly", func() {
 			var err error
 			udpConn, err := net.ListenPacket("udp4", "127.0.0.1:3456")
 			Expect(err).ShouldNot(HaveOccurred())
+			defer udpConn.Close()
 
 			serverCmd := exec.Command(metricsServerPath, args...)
 			serverCmd.Env = os.Environ()
@@ -113,6 +62,7 @@ var _ = Describe("Etcd Metrics Server", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			var nextEvent = func() *events.ValueMetric { return readNextEvent(udpConn) }
+			var nextEventName = func() string { return *readNextEvent(udpConn).Name }
 
 			Eventually(nextEvent, 15, 0.1).Should(Equal(&events.ValueMetric{
 				Name:  proto.String("IsLeader"),
@@ -120,7 +70,11 @@ var _ = Describe("Etcd Metrics Server", func() {
 				Unit:  proto.String(runners.MetricUnit),
 			}))
 
-		}, 15)
+			Eventually(nextEventName, 15, 0.1).Should(Equal("RaftIndex"))
+			Eventually(nextEventName, 15, 0.1).Should(Equal("RaftTerm"))
+			Eventually(nextEventName, 15, 0.1).Should(Equal("RaftIndex"))
+			Eventually(nextEventName, 15, 0.1).Should(Equal("EtcdIndex"))
+		})
 	}
 
 	Context("with tls", func() {

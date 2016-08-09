@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/metricz/instrumentation"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instrumentation"
 	"github.com/cloudfoundry/gunk/urljoiner"
 )
 

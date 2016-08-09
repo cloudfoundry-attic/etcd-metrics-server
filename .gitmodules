@@ -10,9 +10,6 @@
 [submodule "vendor/code.cloudfoundry.org/cfhttp"]
 	path = vendor/code.cloudfoundry.org/cfhttp
 	url = https://github.com/cloudfoundry/cfhttp
-[submodule "vendor/github.com/cloudfoundry-incubator/metricz"]
-	path = vendor/github.com/cloudfoundry-incubator/metricz
-	url = https://github.com/cloudfoundry-incubator/metricz
 [submodule "vendor/github.com/cloudfoundry/dropsonde"]
 	path = vendor/github.com/cloudfoundry/dropsonde
 	url = https://github.com/cloudfoundry/dropsonde
@@ -52,9 +49,6 @@
 [submodule "vendor/code.cloudfoundry.org/lager"]
 	path = vendor/code.cloudfoundry.org/lager
 	url = https://github.com/cloudfoundry/lager
-[submodule "vendor/code.cloudfoundry.org/localip"]
-	path = vendor/code.cloudfoundry.org/localip
-	url = https://github.com/cloudfoundry/localip
 [submodule "vendor/github.com/tedsuo/ifrit"]
 	path = vendor/github.com/tedsuo/ifrit
 	url = https://github.com/tedsuo/ifrit
