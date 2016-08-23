@@ -2,12 +2,12 @@ package instruments
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instrumentation"
-	"github.com/cloudfoundry/gunk/urljoiner"
 )
 
 type Store struct {
@@ -19,8 +19,8 @@ type Store struct {
 
 func NewStore(getter getter, etcdAddr string, logger lager.Logger) *Store {
 	return &Store{
-		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "store"),
-		keysEndpoint:  urljoiner.Join(etcdAddr, "v2", "keys", "/"),
+		statsEndpoint: fmt.Sprintf("%s/v2/stats/store", etcdAddr),
+		keysEndpoint:  fmt.Sprintf("%s/v2/keys/", etcdAddr),
 		getter:        getter,
 		logger:        logger,
 	}

@@ -6,13 +6,10 @@ import (
 	"os/exec"
 
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
-	"github.com/cloudfoundry/gunk/diegonats"
-	"github.com/cloudfoundry/gunk/diegonats/gnatsdrunner"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/cloudfoundry/storeadapter/storerunner/etcdstorerunner"
 	"github.com/gogo/protobuf/proto"
 	"github.com/onsi/gomega/gexec"
-	"github.com/tedsuo/ifrit"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,20 +28,15 @@ var _ = Describe("Etcd Metrics Server", func() {
 	}
 
 	etcdMetricsServerTest := func(sslConfig *etcdstorerunner.SSLConfig, args []string) {
-		var gnatsdRunner ifrit.Process
-		var natsClient diegonats.NATSClient
 		var etcdRunner *etcdstorerunner.ETCDClusterRunner
 		var session *gexec.Session
 
 		BeforeEach(func() {
-			gnatsdRunner, natsClient = gnatsdrunner.StartGnatsd(4222)
 			etcdRunner = etcdstorerunner.NewETCDClusterRunner(5001, 1, sslConfig)
 			etcdRunner.Start()
 		})
 
 		AfterEach(func() {
-			gnatsdRunner.Signal(os.Interrupt)
-			Eventually(gnatsdRunner.Wait(), 5).Should(Receive())
 			etcdRunner.Stop()
 			session.Kill().Wait()
 		})

@@ -2,11 +2,11 @@ package instruments
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instrumentation"
-	"github.com/cloudfoundry/gunk/urljoiner"
 )
 
 type Server struct {
@@ -21,7 +21,7 @@ type getter interface {
 
 func NewServer(getter getter, etcdAddr string, logger lager.Logger) *Server {
 	return &Server{
-		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "self"),
+		statsEndpoint: fmt.Sprintf("%s/v2/stats/self", etcdAddr),
 
 		logger: logger,
 		getter: getter,

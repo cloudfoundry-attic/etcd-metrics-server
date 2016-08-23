@@ -16,9 +16,6 @@
 [submodule "vendor/github.com/cloudfoundry/gosteno"]
 	path = vendor/github.com/cloudfoundry/gosteno
 	url = https://github.com/cloudfoundry/gosteno
-[submodule "vendor/github.com/cloudfoundry/gunk"]
-	path = vendor/github.com/cloudfoundry/gunk
-	url = https://github.com/cloudfoundry/gunk
 [submodule "vendor/github.com/cloudfoundry/sonde-go"]
 	path = vendor/github.com/cloudfoundry/sonde-go
 	url = https://github.com/cloudfoundry/sonde-go

@@ -3,10 +3,10 @@ package instruments
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instrumentation"
-	"github.com/cloudfoundry/gunk/urljoiner"
 )
 
 type Leader struct {
@@ -19,7 +19,7 @@ var ErrRedirected = errors.New("redirected to leader")
 
 func NewLeader(getter getter, etcdAddr string, logger lager.Logger) *Leader {
 	return &Leader{
-		statsEndpoint: urljoiner.Join(etcdAddr, "v2", "stats", "leader"),
+		statsEndpoint: fmt.Sprintf("%s/v2/stats/leader", etcdAddr),
 		logger:        logger,
 		getter:        getter,
 	}

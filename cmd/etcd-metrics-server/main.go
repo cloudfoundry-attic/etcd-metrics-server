@@ -15,7 +15,6 @@ import (
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/runners"
 	"github.com/cloudfoundry/dropsonde"
-	"github.com/cloudfoundry/gunk/diegonats"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/grouper"
 	"github.com/tedsuo/ifrit/sigmon"
@@ -67,24 +66,6 @@ var password = flag.String(
 	"password",
 	"",
 	"basic auth password",
-)
-
-var natsAddresses = flag.String(
-	"natsAddresses",
-	"127.0.0.1:4222",
-	"comma-separated list of NATS addresses (ip:port)",
-)
-
-var natsUsername = flag.String(
-	"natsUsername",
-	"nats",
-	"Username to connect to nats",
-)
-
-var natsPassword = flag.String(
-	"natsPassword",
-	"nats",
-	"Password for nats user",
 )
 
 var communicationTimeout = flag.Duration(
@@ -143,11 +124,7 @@ func main() {
 
 	logger, reconfigurableSink := cflager.New(componentName)
 
-	natsClient := diegonats.NewClient()
-	natsClientRunner := diegonats.NewClientRunner(*natsAddresses, *natsUsername, *natsPassword, logger, natsClient)
-
 	members := grouper.Members{
-		{"nats-client", natsClientRunner},
 		{"metron-notifier", initializeMetronNotifier(client, logger)},
 	}
 
