@@ -21,7 +21,7 @@
 	url = https://github.com/cloudfoundry/storeadapter
 [submodule "vendor/github.com/coreos/go-etcd"]
 	path = vendor/github.com/coreos/go-etcd
-	url = https://github.com/coreos/go-etcd/
+	url = https://github.com/coreos/go-etcd
 [submodule "vendor/github.com/gogo/protobuf"]
 	path = vendor/github.com/gogo/protobuf
 	url = https://github.com/gogo/protobuf
