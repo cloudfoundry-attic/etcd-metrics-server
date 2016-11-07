@@ -49,6 +49,6 @@
 [submodule "vendor/github.com/ugorji/go"]
 	path = vendor/github.com/ugorji/go
 	url = https://github.com/ugorji/go
-[submodule "vendor/github.com/cloudfoundry/gunk"]
-	path = vendor/github.com/cloudfoundry/gunk
-	url = https://github.com/cloudfoundry/gunk
+[submodule "vendor/code.cloudfoundry.org/workpool"]
+	path = vendor/code.cloudfoundry.org/workpool
+	url = https://github.com/cloudfoundry/workpool
