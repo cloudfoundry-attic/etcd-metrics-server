@@ -1,6 +1,6 @@
 etcd-metrics-server
 ===================
-[CI](https://mega.ci.cf-app.com/pipelines/etcd/jobs/test-etcd-metrics-server)
+[CI](https://wings.concourse.ci/teams/cf-infrastructure/pipelines/etcd)
 
 etcd varz/healthz metrics and collector integration
 
