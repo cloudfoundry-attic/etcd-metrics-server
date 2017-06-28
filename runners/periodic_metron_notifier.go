@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry-incubator/etcd-metrics-server/instrumentation"
+	"github.com/cloudfoundry-incubator/etcd-metrics-server/instruments"
 	"github.com/cloudfoundry/dropsonde/metrics"
 )
 
@@ -81,6 +81,4 @@ func (n *PeriodicMetronNotifier) Run(signals <-chan os.Signal, ready chan<- stru
 			return nil
 		}
 	}
-
-	return nil
 }

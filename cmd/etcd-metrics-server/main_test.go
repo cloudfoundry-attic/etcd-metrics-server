@@ -23,8 +23,8 @@ var _ = Describe("Etcd Metrics Server", func() {
 	)
 
 	type registration struct {
-		Host        string   `json:host`
-		Credentials []string `json:credentials`
+		Host        string   `json:"host"`
+		Credentials []string `json:"credentials"`
 	}
 
 	etcdMetricsServerTest := func(sslConfig *etcdstorerunner.SSLConfig, args []string) {
